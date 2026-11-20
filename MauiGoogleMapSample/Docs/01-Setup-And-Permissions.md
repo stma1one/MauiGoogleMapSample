@@ -51,12 +51,43 @@ builder
     });
 ```
 
-בנוסף, נרשום ב-Dependency Injection (DI) את השירות, ה-ViewModel והדף הראשי:
+בנוסף, נשתמש בשיטת **Fluent Builder Extension Methods** (`RegisterServices`, `RegisterViewModels`, `RegisterViews`) כדי לשמור על `CreateMauiApp()` נקי ומאורגן:
 
 ```csharp
-builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
-builder.Services.AddTransient<SetupStatusViewModel>();
-builder.Services.AddTransient<MainPage>();
+var builder = MauiApp.CreateBuilder();
+builder
+    .UseMauiApp<App>()
+    .UseMauiMaps()
+    .RegisterServices()
+    .RegisterViewModels()
+    .RegisterViews()
+    .ConfigureFonts(fonts =>
+    {
+        fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+        fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+    });
+```
+
+וכל מתודת הרחבה אחראית על שכבה אחת בלבד ומחזירה את `builder` להמשך השרשור:
+
+```csharp
+private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
+{
+    builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
+    return builder;
+}
+
+private static MauiAppBuilder RegisterViewModels(this MauiAppBuilder builder)
+{
+    builder.Services.AddTransient<SetupStatusViewModel>();
+    return builder;
+}
+
+private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
+{
+    builder.Services.AddTransient<MainPage>();
+    return builder;
+}
 ```
 
 ---

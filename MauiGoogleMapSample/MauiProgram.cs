@@ -17,16 +17,14 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMauiMaps()
+            .RegisterServices()
+            .RegisterViewModels()
+            .RegisterViews()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
-
-        // Dependency Injection registrations
-        builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
-        builder.Services.AddTransient<SetupStatusViewModel>();
-        builder.Services.AddTransient<MainPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
@@ -38,5 +36,23 @@ public static class MauiProgram
 #endif
 #endif
         return builder.Build();
+    }
+
+    private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
+    {
+        builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
+        return builder;
+    }
+
+    private static MauiAppBuilder RegisterViewModels(this MauiAppBuilder builder)
+    {
+        builder.Services.AddTransient<SetupStatusViewModel>();
+        return builder;
+    }
+
+    private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
+    {
+        builder.Services.AddTransient<MainPage>();
+        return builder;
     }
 }
