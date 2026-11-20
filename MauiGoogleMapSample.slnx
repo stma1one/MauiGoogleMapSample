@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MauiGoogleMapSample.Tests/MauiGoogleMapSample.Tests.csproj" />
+  <Project Path="MauiGoogleMapSample/MauiGoogleMapSample.csproj" />
+</Solution>
