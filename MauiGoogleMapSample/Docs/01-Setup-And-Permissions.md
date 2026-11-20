@@ -130,7 +130,34 @@ private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
 3. בתפריט הצד עברו ל-**APIs & Services -> Library**, חפשו **Maps SDK for Android** ולחצו **Enable**.
 4. עברו ל-**APIs & Services -> Credentials**, לחצו **+ CREATE CREDENTIALS -> API key**.
 5. העתיקו את המפתח שנוצר (מתחיל ב-`AIza...`) והדביקו אותו במקום `YOUR_GOOGLE_MAPS_API_KEY_HERE` בקובץ `AndroidManifest.xml`.
-6. **כלל אבטחה חשוב:** לעולם אל תעלו מפתח API אמיתי למאגר Git ציבורי! מומלץ להגביל את המפתח ב-Google Cloud לפי `Package Name` ו-`SHA-1` של האפליקציה.
+6. **כלל אבטחה קריטי — סכנת חשיפת API Key בקוד המקור:**
+   * **לעולם אל תשמרו מפתח API אמיתי בתוך קוד C# (Hardcoded) ואל תעלו אותו ל-GitHub!**
+   * בוטים אוטומטיים סורקים את GitHub מסביב לשעון ומאתרים מפתחות Google (`AIza...`) תוך שניות. חשיפת מפתח עלולה לגרום לשימוש זדוני במכסת ה-API שלכם, לחיובים כספיים בלתי צפויים בחשבון Google Cloud, ולחסימת האפליקציה.
+   * בנוסף, מומלץ להגביל את המפתח ב-Google Cloud Console לפי **Package Name** ו-**SHA-1** של אפליקציית האנדרואיד שלכם.
+
+---
+
+## 5.1 שמירת ה-API Key באחסון המוצפן (`SecureStorage`) ושליפתו למסכים
+
+ב-.NET MAUI קיים שירות מובנה בשם **`SecureStorage`** ששומר זוגות מפתח-ערך באופן **מוצפן על המכשיר** (באמצעות **Android KeyStore** באנדרואיד ו-**Keychain** ב-iOS).
+
+כך אנו מיישמים זאת בפרויקט בצורה נקייה ובטוחה (`Services/SecureKeyStorageService.cs`):
+
+```csharp
+// שמירה מוצפנת על המכשיר (במסך ההגדרות - שלב 1)
+await SecureStorage.Default.SetAsync("coffeemap_google_maps_api_key", apiKey.Trim());
+
+// שליפה מכל מסך אחר באפליקציה (למשל בשלב 2 או בקריאות REST)
+string? savedKey = await SecureStorage.Default.GetAsync("coffeemap_google_maps_api_key");
+
+// מחיקה מהאחסון המוצפן
+SecureStorage.Default.Remove("coffeemap_google_maps_api_key");
+```
+
+### הבדל טכני חשוב שכדאי להכיר: `SecureStorage` מול `AndroidManifest.xml`
+* **פקד המפה הטבעי (`<maps:Map>` באנדרואיד):** קורא את `com.google.android.geo.API_KEY` מקובץ `AndroidManifest.xml` בזמן הפעלת האפליקציה (לפני שקוד ה-C# רץ). לכן ב-Git אנו שומרים רק `YOUR_GOOGLE_MAPS_API_KEY_HERE`, ומציבים מפתח אמיתי מקומית בלבד (בלי לעשות לו `commit`).
+* **`SecureStorage` (אחסון מוצפן בזמן ריצה):** הוא הדרך הנכונה והמאובטחת לשמור מפתחות API וסודות שמוזנים בזמן ריצה (כמו מפתח ל-Google Places / Directions / Geocoding REST API או ל-Gemini AI), ולשלוף אותם בכל מסך אחר באפליקציה בלי לשמור אותם בקוד המקור!
+* בדוגמה שלנו, `MainPage` מאפשר לשמור את המפתח ב-`SecureStorage`, ו-`MapDisplayPage` (שלב 2) מדגים שליפה שלו (והצגתו בצורה מוסתרת/Masked: `AIza••••9999`) מבלי לחשוף את המפתח המלא.
 
 ---
 

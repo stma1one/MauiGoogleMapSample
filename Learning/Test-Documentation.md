@@ -69,3 +69,10 @@
 | `Constructor_StartsWithBothOverlaysActiveAndTwoMapElements` | אתחול `CoffeeRoutesViewModel` | 2 אלמנטים (`Polyline` + `Circle`) פעילים |
 | `ClearOverlaysCommand_RemovesAllElementsAndDisablesCommand` | ניקוי שכבות | מרוקן את האלמנטים ומשבית `ClearOverlaysCommand` |
 | `ToggleRouteCommand_TogglesPolylineAndRaisesMapElementsChanged` | הסתרת מסלול | מסיר `Polyline`, משאיר `Circle`, ומפעיל אירוע |
+
+## עדכון: `SecureStorage` וניווט `Flyout`
+| שם הבדיקה | תרחיש נבדק | תוצאה צפויה |
+| :--- | :--- | :--- |
+| `ExecuteSaveKeyAsync_WhenValidKey_SavesToSecureStorageAndCanBeLoadedBack` | שמירת מפתח ב-`FakeSecureKeyStorageService` וטעינה מחדש | המפתח נשמר ונטען מחדש ללא שמירה בקוד המקור |
+| `ClearSavedKeyCommand_ClearsSecureStorageAndRestoresPlaceholder` | מחיקת מפתח מוצפן | האחסון מתרוקן והשדה חוזר ל-Placeholder |
+| `LoadStoredKeyStatusAsync_WhenKeyStored_DisplaysMaskedKeyFromSecureStorage` | שליפת מפתח ב-`MapDisplayViewModel` | מציג סטטוס מוסתר (`AIza••••9999`) ללא חשיפת המפתח המלא |

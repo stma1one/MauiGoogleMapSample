@@ -6,33 +6,56 @@
     xmlns:local="clr-namespace:MauiGoogleMapSample"
     xmlns:views="clr-namespace:MauiGoogleMapSample.Views"
     FlowDirection="RightToLeft"
+    FlyoutBehavior="Flyout"
     Title="CoffeeMap">
 
-    <TabBar>
-        <ShellContent
-            Title="שלב 5: מסלולים"
-            ContentTemplate="{DataTemplate views:CoffeeRoutesPage}"
-            Route="CoffeeRoutesPage" />
+    <Shell.FlyoutHeader>
+        <Grid BackgroundColor="{StaticResource Primary}" Padding="20,28,20,20">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="☕ CoffeeMap"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource White}" />
+                <Label Text="פרויקט דוגמה מודרך — Google Maps ב-.NET MAUI"
+                       FontSize="12"
+                       TextColor="{StaticResource Gray200}" />
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
 
+    <FlyoutItem Title="שלב 1: הגדרות והרשאות" Icon="icon_setup.png">
         <ShellContent
-            Title="שלב 4: GPS"
-            ContentTemplate="{DataTemplate views:UserLocationPage}"
-            Route="UserLocationPage" />
+            Title="שלב 1: הגדרות והרשאות"
+            ContentTemplate="{DataTemplate local:MainPage}"
+            Route="MainPage" />
+    </FlyoutItem>
 
+    <FlyoutItem Title="שלב 2: תצוגת מפה וסוגים" Icon="icon_map.png">
+        <ShellContent
+            Title="שלב 2: תצוגת מפה"
+            ContentTemplate="{DataTemplate views:MapDisplayPage}"
+            Route="MapDisplayPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="שלב 3: סיכות (Pins)" Icon="icon_pins.png">
         <ShellContent
             Title="שלב 3: סיכות"
             ContentTemplate="{DataTemplate views:CoffeePinsPage}"
             Route="CoffeePinsPage" />
+    </FlyoutItem>
 
+    <FlyoutItem Title="שלב 4: מיקום GPS" Icon="icon_gps.png">
         <ShellContent
-            Title="שלב 2: מפה"
-            ContentTemplate="{DataTemplate views:MapDisplayPage}"
-            Route="MapDisplayPage" />
+            Title="שלב 4: מיקום GPS"
+            ContentTemplate="{DataTemplate views:UserLocationPage}"
+            Route="UserLocationPage" />
+    </FlyoutItem>
 
+    <FlyoutItem Title="שלב 5: מסלולים וצורות" Icon="icon_routes.png">
         <ShellContent
-            Title="שלב 1: הגדרות"
-            ContentTemplate="{DataTemplate local:MainPage}"
-            Route="MainPage" />
-    </TabBar>
+            Title="שלב 5: מסלולים וצורות"
+            ContentTemplate="{DataTemplate views:CoffeeRoutesPage}"
+            Route="CoffeeRoutesPage" />
+    </FlyoutItem>
 
 </Shell>

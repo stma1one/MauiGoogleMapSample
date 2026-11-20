@@ -63,16 +63,23 @@
                       IsZoomEnabled="True" />
         </Border>
 
-        <!-- Current Map State Summary -->
+        <!-- Current Map State Summary & Stored API Key Status -->
         <Border Grid.Row="3"
                 StrokeShape="RoundRectangle 8"
                 Padding="10"
                 BackgroundColor="{StaticResource Gray100}">
-            <Label AutomationId="RegionSummaryLabel"
-                   Text="{Binding RegionSummary}"
-                   FontSize="13"
-                   FontAttributes="Bold"
-                   HorizontalTextAlignment="Center" />
+            <VerticalStackLayout Spacing="4">
+                <Label AutomationId="RegionSummaryLabel"
+                       Text="{Binding RegionSummary}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" />
+                <Label AutomationId="ApiKeyStatusBadgeLabel"
+                       Text="{Binding ApiKeyStatusBadge}"
+                       FontSize="12"
+                       TextColor="{StaticResource Primary}"
+                       HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
         </Border>
 
     </Grid>

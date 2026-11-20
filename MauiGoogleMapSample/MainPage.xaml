@@ -15,7 +15,7 @@
                    FontAttributes="Bold"
                    HorizontalTextAlignment="Start" />
 
-            <Label Text="שלב 1: הגדרת NuGet, אתחול UseMauiMaps() והרשאות Android"
+            <Label Text="שלב 1: הגדרת NuGet, אתחול UseMauiMaps(), הרשאות Android ושמירת מפתח מוצפן"
                    FontSize="15"
                    TextColor="{StaticResource Gray600}" />
 
@@ -29,36 +29,42 @@
                            FontSize="16"
                            FontAttributes="Bold" />
                     <Label Text="✅ חבילת Microsoft.Maui.Controls.Maps מותקנת" FontSize="14" />
-                    <Label Text="✅ קריאה ל-UseMauiMaps() ב-MauiProgram.cs" FontSize="14" />
+                    <Label Text="✅ קריאה ל-UseMauiMaps() ו-Fluent DI ב-MauiProgram.cs" FontSize="14" />
                     <Label Text="✅ הרשאות ACCESS_FINE_LOCATION ו-ACCESS_COARSE_LOCATION ב-AndroidManifest.xml" FontSize="14" />
-                    <Label Text="🔑 הגדרת com.google.android.geo.API_KEY (Placeholder)" FontSize="14" />
+                    <Label Text="🔐 שמירת מפתח API באחסון המוצפן (SecureStorage) — ללא חשיפה בקוד" FontSize="14" />
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Interactive API Key Validator -->
+            <!-- Interactive API Key Validator & SecureStorage -->
             <Border StrokeShape="RoundRectangle 12"
                     Stroke="{StaticResource Gray300}"
                     Padding="16"
                     BackgroundColor="{StaticResource White}">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="בדיקת תקינות Google Maps API Key:"
+                    <Label Text="אימות ושמירת Google Maps API Key (SecureStorage):"
                            FontSize="16"
                            FontAttributes="Bold" />
 
                     <Entry AutomationId="ApiKeyEntry"
-                           Placeholder="הזן מפתח API לבדיקה..."
+                           Placeholder="הזן מפתח API לבדיקה ושמירה..."
                            Text="{Binding ApiKeyInput}"
                            FlowDirection="LeftToRight" />
 
-                    <HorizontalStackLayout Spacing="10">
+                    <HorizontalStackLayout Spacing="8">
                         <Button AutomationId="ValidateKeyButton"
-                                Text="בדוק תקינות מפתח"
+                                Text="בדוק תקינות"
                                 Command="{Binding ValidateKeyCommand}" />
-                        <Button AutomationId="ResetKeyButton"
-                                Text="איפוס ל-Placeholder"
-                                Command="{Binding ResetToPlaceholderCommand}"
+                        <Button AutomationId="SaveKeyButton"
+                                Text="שמור מוצפן"
+                                Command="{Binding SaveKeyCommand}" />
+                        <Button AutomationId="ClearKeyButton"
+                                Text="מחק / אפס"
+                                Command="{Binding ClearSavedKeyCommand}"
                                 BackgroundColor="{StaticResource Gray500}" />
                     </HorizontalStackLayout>
+
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       IsVisible="{Binding IsLoading}" />
 
                     <Border StrokeShape="RoundRectangle 8"
                             Padding="12"
@@ -71,6 +77,11 @@
                             <Label AutomationId="StatusDetailsLabel"
                                    Text="{Binding StatusDetails}"
                                    FontSize="13" />
+                            <Label AutomationId="StorageStatusLabel"
+                                   Text="{Binding StorageStatus}"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}" />
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>

@@ -14,11 +14,12 @@ public partial class MapDisplayPage : ContentPage
         BindingContext = _viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         _viewModel.MoveToRegionRequested += OnMoveToRegionRequested;
         CoffeeMapControl.MoveToRegion(_viewModel.GetCurrentMapSpan());
+        await _viewModel.LoadStoredKeyStatusAsync();
     }
 
     protected override void OnDisappearing()

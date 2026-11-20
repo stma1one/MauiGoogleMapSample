@@ -6,21 +6,30 @@ namespace MauiGoogleMapSample.ViewModels;
 public class SetupStatusViewModel : BaseViewModel
 {
     private readonly IMapConfigurationValidator _validator;
+    private readonly ISecureKeyStorageService _secureStorage;
+
     private string _apiKeyInput;
     private string _statusTitle = string.Empty;
     private string _statusDetails = string.Empty;
+    private string _storageStatus = "טרם נשמר מפתח באחסון המוצפן (SecureStorage).";
     private bool _isConfigured;
-    private readonly Command _validateKeyCommand;
-    private readonly Command _resetToPlaceholderCommand;
 
-    public SetupStatusViewModel(IMapConfigurationValidator validator)
+    private readonly Command _validateKeyCommand;
+    private readonly Command _saveKeyCommand;
+    private readonly Command _clearSavedKeyCommand;
+
+    public SetupStatusViewModel(
+        IMapConfigurationValidator validator,
+        ISecureKeyStorageService secureStorage)
     {
         _validator = validator;
+        _secureStorage = secureStorage;
         Title = "CoffeeMap — שלב 1: התקנה והרשאות";
         _apiKeyInput = _validator.PlaceholderKey;
 
         _validateKeyCommand = new Command(ExecuteValidateKey, CanExecuteValidateKey);
-        _resetToPlaceholderCommand = new Command(ExecuteResetToPlaceholder);
+        _saveKeyCommand = new Command(async () => await ExecuteSaveKeyAsync(), CanExecuteSaveKey);
+        _clearSavedKeyCommand = new Command(ExecuteClearSavedKey);
 
         ExecuteValidateKey();
     }
@@ -34,6 +43,7 @@ public class SetupStatusViewModel : BaseViewModel
             _apiKeyInput = value;
             OnPropertyChanged();
             _validateKeyCommand.ChangeCanExecute();
+            _saveKeyCommand.ChangeCanExecute();
         }
     }
 
@@ -59,6 +69,17 @@ public class SetupStatusViewModel : BaseViewModel
         }
     }
 
+    public string StorageStatus
+    {
+        get => _storageStatus;
+        set
+        {
+            if (_storageStatus == value) return;
+            _storageStatus = value;
+            OnPropertyChanged();
+        }
+    }
+
     public bool IsConfigured
     {
         get => _isConfigured;
@@ -67,12 +88,42 @@ public class SetupStatusViewModel : BaseViewModel
             if (_isConfigured == value) return;
             _isConfigured = value;
             OnPropertyChanged();
+            _saveKeyCommand.ChangeCanExecute();
         }
     }
 
     public ICommand ValidateKeyCommand => _validateKeyCommand;
+    public ICommand SaveKeyCommand => _saveKeyCommand;
+    public ICommand ClearSavedKeyCommand => _clearSavedKeyCommand;
 
-    public ICommand ResetToPlaceholderCommand => _resetToPlaceholderCommand;
+    public async Task LoadSavedKeyAsync()
+    {
+        IsLoading = true;
+        _saveKeyCommand.ChangeCanExecute();
+        try
+        {
+            string? savedKey = await _secureStorage.GetApiKeyAsync();
+            if (!string.IsNullOrWhiteSpace(savedKey))
+            {
+                ApiKeyInput = savedKey;
+                ExecuteValidateKey();
+                StorageStatus = "🔐 מפתח API נטען מהאחסון המוצפן (SecureStorage) וזמין לשאר המסכים.";
+            }
+            else
+            {
+                StorageStatus = "טרם נשמר מפתח באחסון המוצפן (SecureStorage).";
+            }
+        }
+        catch (Exception ex)
+        {
+            StorageStatus = $"שגיאה בקריאה מ-SecureStorage: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+            _saveKeyCommand.ChangeCanExecute();
+        }
+    }
 
     private bool CanExecuteValidateKey()
     {
@@ -87,9 +138,39 @@ public class SetupStatusViewModel : BaseViewModel
         StatusDetails = result.Details;
     }
 
-    private void ExecuteResetToPlaceholder()
+    private bool CanExecuteSaveKey()
     {
+        return !IsLoading && _validator.ValidateApiKey(ApiKeyInput).IsValid;
+    }
+
+    public async Task ExecuteSaveKeyAsync()
+    {
+        ExecuteValidateKey();
+        if (!IsConfigured) return;
+
+        IsLoading = true;
+        _saveKeyCommand.ChangeCanExecute();
+        try
+        {
+            await _secureStorage.SaveApiKeyAsync(ApiKeyInput);
+            StorageStatus = "🔐 המפתח נשמר בהצלחה באחסון המוצפן (SecureStorage) ונשלף אוטומטית בשאר המסכים.";
+        }
+        catch (Exception ex)
+        {
+            StorageStatus = $"שגיאה בשמירה ל-SecureStorage: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+            _saveKeyCommand.ChangeCanExecute();
+        }
+    }
+
+    private void ExecuteClearSavedKey()
+    {
+        _secureStorage.ClearApiKey();
         ApiKeyInput = _validator.PlaceholderKey;
         ExecuteValidateKey();
+        StorageStatus = "המפתח נמחק מהאחסון המוצפן והוחזר ל-Placeholder.";
     }
 }

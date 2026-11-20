@@ -4,9 +4,18 @@ namespace MauiGoogleMapSample;
 
 public partial class MainPage : ContentPage
 {
+    private readonly SetupStatusViewModel _viewModel;
+
     public MainPage(SetupStatusViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = viewModel;
+        _viewModel = viewModel;
+        BindingContext = _viewModel;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await _viewModel.LoadSavedKeyAsync();
     }
 }

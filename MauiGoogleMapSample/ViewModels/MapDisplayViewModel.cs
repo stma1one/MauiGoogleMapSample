@@ -12,10 +12,12 @@ public class MapDisplayViewModel : BaseViewModel
     private const double MaxZoomRadiusKm = 20.0;
 
     private readonly ICoffeeRegionService _regionService;
+    private readonly ISecureKeyStorageService _secureStorage;
     private MapType _selectedMapType = MapType.Street;
     private CoffeeRegion _selectedRegion;
     private double _zoomRadiusKm;
     private string _regionSummary = string.Empty;
+    private string _apiKeyStatusBadge = "בודק מפתח API באחסון המוצפן...";
 
     private readonly Command<string> _setMapTypeCommand;
     private readonly Command<CoffeeRegion> _selectRegionCommand;
@@ -24,9 +26,12 @@ public class MapDisplayViewModel : BaseViewModel
 
     public event Action<MapSpan>? MoveToRegionRequested;
 
-    public MapDisplayViewModel(ICoffeeRegionService regionService)
+    public MapDisplayViewModel(
+        ICoffeeRegionService regionService,
+        ISecureKeyStorageService secureStorage)
     {
         _regionService = regionService;
+        _secureStorage = secureStorage;
         Title = "CoffeeMap — שלב 2: תצוגת מפה";
 
         IReadOnlyList<CoffeeRegion> defaultRegions = _regionService.GetDefaultRegions();
@@ -93,10 +98,42 @@ public class MapDisplayViewModel : BaseViewModel
         }
     }
 
+    public string ApiKeyStatusBadge
+    {
+        get => _apiKeyStatusBadge;
+        set
+        {
+            if (_apiKeyStatusBadge == value) return;
+            _apiKeyStatusBadge = value;
+            OnPropertyChanged();
+        }
+    }
+
     public ICommand SetMapTypeCommand => _setMapTypeCommand;
     public ICommand SelectRegionCommand => _selectRegionCommand;
     public ICommand ZoomInCommand => _zoomInCommand;
     public ICommand ZoomOutCommand => _zoomOutCommand;
+
+    public async Task LoadStoredKeyStatusAsync()
+    {
+        try
+        {
+            string? savedKey = await _secureStorage.GetApiKeyAsync();
+            if (!string.IsNullOrWhiteSpace(savedKey))
+            {
+                string masked = savedKey.Length >= 8 ? $"{savedKey[..4]}••••{savedKey[^4..]}" : "••••";
+                ApiKeyStatusBadge = $"🔐 מפתח API נשלף מ-SecureStorage ({masked})";
+            }
+            else
+            {
+                ApiKeyStatusBadge = "⚠️ לא נשמר מפתח ב-SecureStorage (ניתן להזין בשלב 1)";
+            }
+        }
+        catch
+        {
+            ApiKeyStatusBadge = "⚠️ לא ניתן לקרוא מ-SecureStorage";
+        }
+    }
 
     public MapSpan GetCurrentMapSpan()
     {

@@ -12,11 +12,11 @@
 ```mermaid
 flowchart TD
   AppShell(["AppShell (נקודת פתיחה וניווט)"])
-  AppShell -->|"Shell Tab / Flyout"| CoffeeRoutesPage
-  AppShell -->|"Shell Tab / Flyout"| UserLocationPage
-  AppShell -->|"Shell Tab / Flyout"| CoffeePinsPage
-  AppShell -->|"Shell Tab / Flyout"| MapDisplayPage
   AppShell -->|"Shell Tab / Flyout"| MainPage
+  AppShell -->|"Shell Tab / Flyout"| MapDisplayPage
+  AppShell -->|"Shell Tab / Flyout"| CoffeePinsPage
+  AppShell -->|"Shell Tab / Flyout"| UserLocationPage
+  AppShell -->|"Shell Tab / Flyout"| CoffeeRoutesPage
 ```
 
 ### פרומפט שמור ליצירת תרשים זרימת המסכים בעיצוב גרפי:
@@ -81,12 +81,20 @@ classDiagram
     <<interface>>
     +MapConfigCheckResult() record
   }
+  class ISecureKeyStorageService {
+    <<interface>>
+  }
   class LocationService {
     +GetCurrentLocationAsync() Task~LocationFetchResult~
     +CalculateDistanceKm() double
   }
   class MapConfigurationValidator {
     +ValidateApiKey() MapConfigCheckResult
+  }
+  class SecureKeyStorageService {
+    +SaveApiKeyAsync() Task
+    +GetApiKeyAsync() Task~string?~
+    +ClearApiKey() void
   }
   class BaseViewModel {
   }
@@ -101,9 +109,12 @@ classDiagram
   }
   class MapDisplayViewModel {
     +ObservableCollection~CoffeeRegion~ Regions
+    +LoadStoredKeyStatusAsync() Task
     +GetCurrentMapSpan() MapSpan
   }
   class SetupStatusViewModel {
+    +LoadSavedKeyAsync() Task
+    +ExecuteSaveKeyAsync() Task
   }
   class UserLocationViewModel {
     +ObservableCollection~CoffeeStation~ Stations
@@ -152,16 +163,24 @@ classDiagram
     +ValidateApiKey_WhenValidLength_ReturnsValid() void
   }
   class MapDisplayViewModelTests {
+    +SaveApiKeyAsync() Task
+    +GetApiKeyAsync() Task~string?~
+    +ClearApiKey() void
     +Constructor_InitializesWithStreetMapAndFirstRegion() void
     +SetMapTypeCommand_SwitchesToSatelliteAndHybrid() void
     +SelectRegionCommand_UpdatesRegionAndRaisesMoveToRegionEvent() void
     +ZoomInAndOutCommands_UpdateRadiusAndRespectCanExecuteBounds() void
+    +LoadStoredKeyStatusAsync_WhenKeyStored_DisplaysMaskedKeyFromSecureStorage() Task
   }
   class SetupStatusViewModelTests {
-    +Constructor_InitializesWithPlaceholderAndInvalidStatus() void
+    +string? StoredKey
+    +SaveApiKeyAsync() Task
+    +GetApiKeyAsync() Task~string?~
+    +ClearApiKey() void
+    +Constructor_InitializesWithPlaceholderAndDisablesSaveCommand() void
     +ValidateKeyCommand_WhenApiKeyEmpty_CannotExecute() void
-    +ValidateKeyCommand_WhenValidKeyEntered_UpdatesIsConfiguredToTrue() void
-    +ResetToPlaceholderCommand_RestoresPlaceholderAndInvalidState() void
+    +ExecuteSaveKeyAsync_WhenValidKey_SavesToSecureStorageAndCanBeLoadedBack() Task
+    +ClearSavedKeyCommand_ClearsSecureStorageAndRestoresPlaceholder() Task
   }
   class UserLocationViewModelTests {
     +GetCurrentLocationAsync() Task~LocationFetchResult~
@@ -177,6 +196,7 @@ classDiagram
   ICoffeeStationService <|-- CoffeeStationService
   ILocationService <|-- LocationService
   IMapConfigurationValidator <|-- MapConfigurationValidator
+  ISecureKeyStorageService <|-- SecureKeyStorageService
   INotifyPropertyChanged <|-- BaseViewModel
   BaseViewModel <|-- CoffeePinsViewModel
   CoffeePinsViewModel ..> ICoffeeStationService : DI
@@ -185,8 +205,10 @@ classDiagram
   CoffeeRoutesViewModel ..> ICoffeeRouteService : DI
   BaseViewModel <|-- MapDisplayViewModel
   MapDisplayViewModel ..> ICoffeeRegionService : DI
+  MapDisplayViewModel ..> ISecureKeyStorageService : DI
   BaseViewModel <|-- SetupStatusViewModel
   SetupStatusViewModel ..> IMapConfigurationValidator : DI
+  SetupStatusViewModel ..> ISecureKeyStorageService : DI
   BaseViewModel <|-- UserLocationViewModel
   UserLocationViewModel ..> ILocationService : DI
   UserLocationViewModel ..> ICoffeeStationService : DI
