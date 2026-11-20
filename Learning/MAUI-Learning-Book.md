@@ -34,3 +34,11 @@
   * `MauiGoogleMapSample.Tests/CoffeeRegionServiceTests.cs` ו-`MapDisplayViewModelTests.cs`
   * מסמכי PDF לתלמיד: `MauiGoogleMapSample/Docs/02-Map-Display-And-Types.pdf` ו-`MauiGoogleMapSample/Docs/Assignments/02-Map-Display-Assignment.pdf`.
 * **ראו פירוט מלא ותצוגת מסך בפרק:** [שלב 2 — תצוגת מפה (`MapDisplayPage`)](Guides/MapDisplayPage-Guide.md)
+
+---
+
+## שלב 3: סיכות (`Pins`), קישור נתונים ואירועי לחיצה (`stage/03-pins-and-callouts`)
+
+* **מטרת השלב:** הצגת תחנות קפה כסיכות `<maps:Pin>` באמצעות `ItemsSource` ו-`ItemTemplate`, סינון חי, וטיפול ב-`MarkerClicked` ו-`InfoWindowClicked` (עם `DisplayAlertAsync`).
+* **מסמכי PDF לתלמיד:** `MauiGoogleMapSample/Docs/03-Pins-And-Callouts.pdf` ו-`MauiGoogleMapSample/Docs/Assignments/03-Pins-And-Callouts-Assignment.pdf`.
+* **ראו פירוט ותצוגת מסך בפרק:** [שלב 3 — סיכות (`CoffeePinsPage`)](Guides/CoffeePinsPage-Guide.md)

@@ -10,6 +10,11 @@
 
     <TabBar>
         <ShellContent
+            Title="שלב 3: סיכות"
+            ContentTemplate="{DataTemplate views:CoffeePinsPage}"
+            Route="CoffeePinsPage" />
+
+        <ShellContent
             Title="שלב 2: תצוגת מפה"
             ContentTemplate="{DataTemplate views:MapDisplayPage}"
             Route="MapDisplayPage" />

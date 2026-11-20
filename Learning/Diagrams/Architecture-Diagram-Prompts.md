@@ -12,12 +12,13 @@
 ```mermaid
 flowchart TD
   AppShell(["AppShell (נקודת פתיחה וניווט)"])
+  AppShell -->|"Shell Tab / Flyout"| CoffeePinsPage
   AppShell -->|"Shell Tab / Flyout"| MapDisplayPage
   AppShell -->|"Shell Tab / Flyout"| MainPage
 ```
 
 ### פרומפט שמור ליצירת תרשים זרימת המסכים בעיצוב גרפי:
-> צור תרשים זרימת מסכים (Screen Flow Diagram) נקי וברור עבור אפליקציית .NET MAUI. מסך הפתיחה וההיררכיה הראשיים מנוהלים ב-`AppShell`, והמסכים בפרויקט הם: `MainPage, MapDisplayPage`. הצג חיצים ברורים למעברי הניווט (`Shell.Current.GoToAsync`) בין המסכים לפי מבנה ה-Mermaid שלעיל.
+> צור תרשים זרימת מסכים (Screen Flow Diagram) נקי וברור עבור אפליקציית .NET MAUI. מסך הפתיחה וההיררכיה הראשיים מנוהלים ב-`AppShell`, והמסכים בפרויקט הם: `CoffeePinsPage, MainPage, MapDisplayPage`. הצג חיצים ברורים למעברי הניווט (`Shell.Current.GoToAsync`) בין המסכים לפי מבנה ה-Mermaid שלעיל.
 
 ---
 
@@ -39,11 +40,27 @@ classDiagram
     +double Longitude
     +double DefaultRadiusKm
   }
+  class CoffeeStation {
+    +string Id
+    +string Name
+    +string Address
+    +string Specialty
+    +double Rating
+    +double Latitude
+    +double Longitude
+  }
   class CoffeeRegionService {
     +GetDefaultRegions() IReadOnlyList~CoffeeRegion~
     +BuildMapSpan() MapSpan
   }
+  class CoffeeStationService {
+    +GetStations() IReadOnlyList~CoffeeStation~
+    +FilterStations() IReadOnlyList~CoffeeStation~
+  }
   class ICoffeeRegionService {
+    <<interface>>
+  }
+  class ICoffeeStationService {
     <<interface>>
   }
   class IMapConfigurationValidator {
@@ -55,21 +72,37 @@ classDiagram
   }
   class BaseViewModel {
   }
+  class CoffeePinsViewModel {
+    +ObservableCollection~CoffeeStation~ Stations
+    +GetInitialMapSpan() MapSpan
+  }
   class MapDisplayViewModel {
     +ObservableCollection~CoffeeRegion~ Regions
     +GetCurrentMapSpan() MapSpan
   }
   class SetupStatusViewModel {
   }
+  class CoffeePinsPage {
+  }
   class MapDisplayPage {
   }
   class ArchitectureSmokeTests {
     +TestHarness_WhenInitialized_PassesSanityCheck() void
   }
+  class CoffeePinsViewModelTests {
+    +Constructor_LoadsAllStationsAndDisablesClearFilter() void
+    +FilterCommand_FiltersStationsAndClearFilterRestoresAll() void
+    +SelectStationByNameCommand_UpdatesSelectedStationAndBanner() void
+  }
   class CoffeeRegionServiceTests {
     +GetDefaultRegions_ReturnsThreeIsraeliCoffeeHubs() void
     +BuildMapSpan_ReturnsSpanCenteredOnRegionCoordinates() void
     +BuildMapSpan_WhenRadiusTooSmall_ClampsToMinimum() void
+  }
+  class CoffeeStationServiceTests {
+    +GetStations_ReturnsFourStationsWithValidLocations() void
+    +FilterStations_BySpecialty_ReturnsMatchingStationsOnly() void
+    +FilterStations_WhenQueryEmpty_ReturnsAllStations() void
   }
   class MapConfigurationValidatorTests {
     +ValidateApiKey_WhenNullOrEmpty_ReturnsInvalid() void
@@ -92,12 +125,17 @@ classDiagram
   ContentPage <|-- MainPage
   MainPage ..> SetupStatusViewModel : DI
   ICoffeeRegionService <|-- CoffeeRegionService
+  ICoffeeStationService <|-- CoffeeStationService
   IMapConfigurationValidator <|-- MapConfigurationValidator
   INotifyPropertyChanged <|-- BaseViewModel
+  BaseViewModel <|-- CoffeePinsViewModel
+  CoffeePinsViewModel ..> ICoffeeStationService : DI
   BaseViewModel <|-- MapDisplayViewModel
   MapDisplayViewModel ..> ICoffeeRegionService : DI
   BaseViewModel <|-- SetupStatusViewModel
   SetupStatusViewModel ..> IMapConfigurationValidator : DI
+  ContentPage <|-- CoffeePinsPage
+  CoffeePinsPage ..> CoffeePinsViewModel : DI
   ContentPage <|-- MapDisplayPage
   MapDisplayPage ..> MapDisplayViewModel : DI
 ```

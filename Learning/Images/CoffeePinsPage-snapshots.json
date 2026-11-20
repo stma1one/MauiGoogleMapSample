@@ -1,0 +1,20 @@
+{
+  "screen": "CoffeePinsPage",
+  "mockup": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Mockups\\CoffeePinsPage.html",
+  "overview": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeePinsPage-overview.png",
+  "blocks": [
+    {
+      "name": "search-bar",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeePinsPage-block1-search-bar.png"
+    },
+    {
+      "name": "pins-map",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeePinsPage-block2-pins-map.png"
+    },
+    {
+      "name": "selected-banner",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeePinsPage-block3-selected-banner.png"
+    }
+  ],
+  "android": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeePinsPage-android.png"
+}

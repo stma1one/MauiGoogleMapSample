@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
+             xmlns:models="clr-namespace:MauiGoogleMapSample.Models"
+             xmlns:vm="clr-namespace:MauiGoogleMapSample.ViewModels"
+             x:Class="MauiGoogleMapSample.Views.CoffeePinsPage"
+             x:DataType="vm:CoffeePinsViewModel"
+             FlowDirection="RightToLeft"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8" Padding="12">
+
+        <!-- Search & Filter Bar -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+            <Entry Grid.Column="0"
+                   AutomationId="StationSearchEntry"
+                   Placeholder="חפש תחנת קפה (למשל: אספרסו, שנקין)..."
+                   Text="{Binding SearchQuery}" />
+            <Button Grid.Column="1"
+                    AutomationId="FilterStationsButton"
+                    Text="סנן"
+                    Command="{Binding FilterCommand}" />
+            <Button Grid.Column="2"
+                    AutomationId="ClearFilterButton"
+                    Text="נקה"
+                    Command="{Binding ClearFilterCommand}"
+                    BackgroundColor="{StaticResource Gray500}" />
+        </Grid>
+
+        <!-- Map with Data-Bound Pins -->
+        <Border Grid.Row="1"
+                StrokeShape="RoundRectangle 12"
+                Stroke="{StaticResource Gray300}">
+            <maps:Map x:Name="PinsMapControl"
+                      AutomationId="PinsMapControl"
+                      ItemsSource="{Binding Stations}"
+                      IsScrollEnabled="True"
+                      IsZoomEnabled="True">
+                <maps:Map.ItemTemplate>
+                    <DataTemplate x:DataType="models:CoffeeStation">
+                        <maps:Pin Location="{Binding Location}"
+                                  Label="{Binding Name}"
+                                  Address="{Binding Address}"
+                                  Type="Place"
+                                  MarkerClicked="OnPinMarkerClicked"
+                                  InfoWindowClicked="OnPinInfoWindowClicked" />
+                    </DataTemplate>
+                </maps:Map.ItemTemplate>
+            </maps:Map>
+        </Border>
+
+        <!-- Selected Pin Info Banner -->
+        <Border Grid.Row="2"
+                StrokeShape="RoundRectangle 8"
+                Padding="12"
+                BackgroundColor="{StaticResource Gray100}">
+            <Label AutomationId="SelectedStationBannerLabel"
+                   Text="{Binding SelectedStationBanner}"
+                   FontSize="13"
+                   FontAttributes="Bold" />
+        </Border>
+
+    </Grid>
+</ContentPage>

@@ -36,3 +36,15 @@
 | `SetMapTypeCommand_SwitchesToSatelliteAndHybrid` | החלפת סוג מפה | עובר ל-`Satellite` ול-`Hybrid` ומעדכן `RegionSummary` |
 | `SelectRegionCommand_UpdatesRegionAndRaisesMoveToRegionEvent` | בחירת אזור ירושלים | מעדכן `SelectedRegion` ומפעיל `MoveToRegionRequested` |
 | `ZoomInAndOutCommands_UpdateRadiusAndRespectCanExecuteBounds` | זום פנימה והחוצה בגבולות | מקטין רדיוס ומשבית `ZoomInCommand` בגבול המינימלי |
+
+## שלב 3 (`stage/03-pins-and-callouts`)
+
+### 5. `CoffeeStationServiceTests` & `CoffeePinsViewModelTests`
+| שם הבדיקה | תרחיש נבדק | תוצאה צפויה |
+| :--- | :--- | :--- |
+| `GetStations_ReturnsFourStationsWithValidLocations` | שליפת תחנות קפה | 4 תחנות עם קואורדינטות תקינות |
+| `FilterStations_BySpecialty_ReturnsMatchingStationsOnly` | סינון לפי `"אספרסו"` | מחזיר בדיוק 2 תחנות תואמות |
+| `FilterStations_WhenQueryEmpty_ReturnsAllStations` | שאילתה ריקה | מחזיר את כל 4 התחנות |
+| `Constructor_LoadsAllStationsAndDisablesClearFilter` | אתחול `CoffeePinsViewModel` | 4 תחנות נטענות ו-`ClearFilterCommand` מושבת |
+| `FilterCommand_FiltersStationsAndClearFilterRestoresAll` | סינון וניקוי סינון | מסנן ל-1 ומנקה חזרה ל-4 |
+| `SelectStationByNameCommand_UpdatesSelectedStationAndBanner` | בחירת סיכה לפי שם | מעדכן `SelectedStation` ופס מידע |
