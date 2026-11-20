@@ -42,7 +42,6 @@ public static class MauiProgram
     private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
     {
         builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
-        builder.Services.AddSingleton<ISecureKeyStorageService, SecureKeyStorageService>();
         builder.Services.AddSingleton<ICoffeeRegionService, CoffeeRegionService>();
         builder.Services.AddSingleton<ICoffeeStationService, CoffeeStationService>();
         builder.Services.AddSingleton<ILocationService, LocationService>();

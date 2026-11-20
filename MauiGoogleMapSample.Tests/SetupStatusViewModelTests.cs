@@ -6,99 +6,63 @@ namespace MauiGoogleMapSample.Tests;
 
 public class SetupStatusViewModelTests
 {
-    private sealed class FakeSecureKeyStorageService : ISecureKeyStorageService
-    {
-        public string? StoredKey { get; private set; }
-
-        public Task SaveApiKeyAsync(string apiKey)
-        {
-            StoredKey = apiKey;
-            return Task.CompletedTask;
-        }
-
-        public Task<string?> GetApiKeyAsync()
-        {
-            return Task.FromResult(StoredKey);
-        }
-
-        public void ClearApiKey()
-        {
-            StoredKey = null;
-        }
-    }
-
     [Fact]
-    public void Constructor_InitializesWithPlaceholderAndDisablesSaveCommand()
+    public void Constructor_InitializesWithPlaceholderAndInvalidStatus()
     {
         // Arrange
         var validator = new MapConfigurationValidator();
-        var storage = new FakeSecureKeyStorageService();
 
         // Act
-        var vm = new SetupStatusViewModel(validator, storage);
+        var vm = new SetupStatusViewModel(validator);
 
         // Assert
         Assert.Equal(validator.PlaceholderKey, vm.ApiKeyInput);
         Assert.False(vm.IsConfigured);
-        Assert.False(vm.SaveKeyCommand.CanExecute(null));
+        Assert.Contains("Placeholder", vm.StatusTitle);
     }
 
     [Fact]
     public void ValidateKeyCommand_WhenApiKeyEmpty_CannotExecute()
     {
         // Arrange
-        var vm = new SetupStatusViewModel(new MapConfigurationValidator(), new FakeSecureKeyStorageService());
+        var vm = new SetupStatusViewModel(new MapConfigurationValidator());
 
         // Act
         vm.ApiKeyInput = "";
 
         // Assert
         Assert.False(vm.ValidateKeyCommand.CanExecute(null));
-        Assert.False(vm.SaveKeyCommand.CanExecute(null));
     }
 
     [Fact]
-    public async Task ExecuteSaveKeyAsync_WhenValidKey_SavesToSecureStorageAndCanBeLoadedBack()
+    public void ValidateKeyCommand_WhenValidKeyEntered_UpdatesIsConfiguredToTrue()
     {
         // Arrange
-        var storage = new FakeSecureKeyStorageService();
-        var vm = new SetupStatusViewModel(new MapConfigurationValidator(), storage);
-        const string validKey = "AIzaSyFakeExampleKeyForUnitTests123456";
+        var vm = new SetupStatusViewModel(new MapConfigurationValidator());
 
         // Act
-        vm.ApiKeyInput = validKey;
-        Assert.True(vm.SaveKeyCommand.CanExecute(null));
-        await vm.ExecuteSaveKeyAsync();
+        vm.ApiKeyInput = "AIzaSyFakeExampleKeyForUnitTests123456";
+        vm.ValidateKeyCommand.Execute(null);
 
         // Assert
-        Assert.Equal(validKey, storage.StoredKey);
+        Assert.True(vm.ValidateKeyCommand.CanExecute(null));
         Assert.True(vm.IsConfigured);
-        Assert.Contains("SecureStorage", vm.StorageStatus);
-
-        // Act 2 — Simulate reopening screen
-        var vmReloaded = new SetupStatusViewModel(new MapConfigurationValidator(), storage);
-        await vmReloaded.LoadSavedKeyAsync();
-
-        // Assert 2
-        Assert.Equal(validKey, vmReloaded.ApiKeyInput);
-        Assert.True(vmReloaded.IsConfigured);
+        Assert.Contains("תקין", vm.StatusTitle);
     }
 
     [Fact]
-    public async Task ClearSavedKeyCommand_ClearsSecureStorageAndRestoresPlaceholder()
+    public void ResetToPlaceholderCommand_RestoresPlaceholderAndInvalidState()
     {
         // Arrange
         var validator = new MapConfigurationValidator();
-        var storage = new FakeSecureKeyStorageService();
-        var vm = new SetupStatusViewModel(validator, storage);
+        var vm = new SetupStatusViewModel(validator);
         vm.ApiKeyInput = "AIzaSyFakeExampleKeyForUnitTests123456";
-        await vm.ExecuteSaveKeyAsync();
+        vm.ValidateKeyCommand.Execute(null);
 
         // Act
-        vm.ClearSavedKeyCommand.Execute(null);
+        vm.ResetToPlaceholderCommand.Execute(null);
 
         // Assert
-        Assert.Null(storage.StoredKey);
         Assert.Equal(validator.PlaceholderKey, vm.ApiKeyInput);
         Assert.False(vm.IsConfigured);
     }

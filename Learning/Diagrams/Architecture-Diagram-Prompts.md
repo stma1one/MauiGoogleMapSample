@@ -81,20 +81,12 @@ classDiagram
     <<interface>>
     +MapConfigCheckResult() record
   }
-  class ISecureKeyStorageService {
-    <<interface>>
-  }
   class LocationService {
     +GetCurrentLocationAsync() Task~LocationFetchResult~
     +CalculateDistanceKm() double
   }
   class MapConfigurationValidator {
     +ValidateApiKey() MapConfigCheckResult
-  }
-  class SecureKeyStorageService {
-    +SaveApiKeyAsync() Task
-    +GetApiKeyAsync() Task~string?~
-    +ClearApiKey() void
   }
   class BaseViewModel {
   }
@@ -109,12 +101,9 @@ classDiagram
   }
   class MapDisplayViewModel {
     +ObservableCollection~CoffeeRegion~ Regions
-    +LoadStoredKeyStatusAsync() Task
     +GetCurrentMapSpan() MapSpan
   }
   class SetupStatusViewModel {
-    +LoadSavedKeyAsync() Task
-    +ExecuteSaveKeyAsync() Task
   }
   class UserLocationViewModel {
     +ObservableCollection~CoffeeStation~ Stations
@@ -163,24 +152,16 @@ classDiagram
     +ValidateApiKey_WhenValidLength_ReturnsValid() void
   }
   class MapDisplayViewModelTests {
-    +SaveApiKeyAsync() Task
-    +GetApiKeyAsync() Task~string?~
-    +ClearApiKey() void
     +Constructor_InitializesWithStreetMapAndFirstRegion() void
     +SetMapTypeCommand_SwitchesToSatelliteAndHybrid() void
     +SelectRegionCommand_UpdatesRegionAndRaisesMoveToRegionEvent() void
     +ZoomInAndOutCommands_UpdateRadiusAndRespectCanExecuteBounds() void
-    +LoadStoredKeyStatusAsync_WhenKeyStored_DisplaysMaskedKeyFromSecureStorage() Task
   }
   class SetupStatusViewModelTests {
-    +string? StoredKey
-    +SaveApiKeyAsync() Task
-    +GetApiKeyAsync() Task~string?~
-    +ClearApiKey() void
-    +Constructor_InitializesWithPlaceholderAndDisablesSaveCommand() void
+    +Constructor_InitializesWithPlaceholderAndInvalidStatus() void
     +ValidateKeyCommand_WhenApiKeyEmpty_CannotExecute() void
-    +ExecuteSaveKeyAsync_WhenValidKey_SavesToSecureStorageAndCanBeLoadedBack() Task
-    +ClearSavedKeyCommand_ClearsSecureStorageAndRestoresPlaceholder() Task
+    +ValidateKeyCommand_WhenValidKeyEntered_UpdatesIsConfiguredToTrue() void
+    +ResetToPlaceholderCommand_RestoresPlaceholderAndInvalidState() void
   }
   class UserLocationViewModelTests {
     +GetCurrentLocationAsync() Task~LocationFetchResult~
@@ -196,7 +177,6 @@ classDiagram
   ICoffeeStationService <|-- CoffeeStationService
   ILocationService <|-- LocationService
   IMapConfigurationValidator <|-- MapConfigurationValidator
-  ISecureKeyStorageService <|-- SecureKeyStorageService
   INotifyPropertyChanged <|-- BaseViewModel
   BaseViewModel <|-- CoffeePinsViewModel
   CoffeePinsViewModel ..> ICoffeeStationService : DI
@@ -205,10 +185,8 @@ classDiagram
   CoffeeRoutesViewModel ..> ICoffeeRouteService : DI
   BaseViewModel <|-- MapDisplayViewModel
   MapDisplayViewModel ..> ICoffeeRegionService : DI
-  MapDisplayViewModel ..> ISecureKeyStorageService : DI
   BaseViewModel <|-- SetupStatusViewModel
   SetupStatusViewModel ..> IMapConfigurationValidator : DI
-  SetupStatusViewModel ..> ISecureKeyStorageService : DI
   BaseViewModel <|-- UserLocationViewModel
   UserLocationViewModel ..> ILocationService : DI
   UserLocationViewModel ..> ICoffeeStationService : DI

@@ -15,7 +15,7 @@
 1. **התקנת חבילת NuGet** — הוספת `Microsoft.Maui.Controls.Maps` לפרויקט (ב-Visual Studio 2026 או ב-JetBrains Rider ב-Mac).
 2. **רישום פקד המפה באתחול** — קריאה ל-`.UseMauiMaps()` בתוך `MauiProgram.cs`.
 3. **מנגנון ההרשאות והגדרת ה-API Key ב-Android (`AndroidManifest.xml`)** — איך מערכת ההפעלה מגנה על פרטיות המשתמש ואיפה בדיוק מציבים את המפתח.
-4. **אבטחת מידע, `SecureStorage` וארכיטקטורת MVVM** — איך מגנים על המפתח ב-GitHub, איפה כותבים את הקוד של `SecureStorage`, ואיך בנויות השכבות.
+4. **הגנה על ה-API Key (`Secrets.props` + `.gitignore`) וארכיטקטורת MVVM** — איך שומרים את המפתח באופן מאובטח מחוץ ל-GitHub, ואיך בנויות השכבות.
 
 ---
 
@@ -72,7 +72,7 @@ builder
 ```
 
 > **שימו לב — הבהרה חשובה למתחילים!**  
-> בקטע הקוד למטה מופיעים שירותים כמו `IMapConfigurationValidator`, `MapConfigurationValidator`, `ISecureKeyStorageService`, `SecureKeyStorageService`, ו-`SetupStatusViewModel`.  
+> בקטע הקוד למטה מופיעים `IMapConfigurationValidator`, `MapConfigurationValidator` ו-`SetupStatusViewModel`.  
 > **אלו אינם שירותים מובנים של .NET MAUI או של Google!**  
 > אלו מחלקות **שאנחנו יצרנו בעצמנו** בתוך הפרויקט הזה (בתיקיות `Services/` ו-`ViewModels/`).  
 > אם תפתחו פרויקט MAUI חדש משלכם — **השורה היחידה שמגיעה מ-.NET MAUI להפעלת מפות היא `.UseMauiMaps()`**, ובתוך `RegisterServices` / `RegisterViewModels` / `RegisterViews` תרשמו אך ורק את המחלקות שאתם תכתבו בפרויקט שלכם!
@@ -81,14 +81,12 @@ builder
 | :--- | :--- | :--- |
 | `.UseMauiMaps()` | **מובנה בחבילת `Microsoft.Maui.Controls.Maps`** | מחבר את פקד ה-`Map` למפות Google באנדרואיד / Apple Maps ב-iOS. |
 | `IMapConfigurationValidator` / `MapConfigurationValidator` | **מחלקה שכתבנו בעצמנו** (`Services/`) | בודקת תקינות פורמט של מפתח API. |
-| `ISecureKeyStorageService` / `SecureKeyStorageService` | **מחלקה שכתבנו בעצמנו** (`Services/`) | עוטפת את `SecureStorage.Default` המובנה של MAUI לשמירת מפתח מוצפן. |
 | `SetupStatusViewModel` | **מחלקה שכתבנו בעצמנו** (`ViewModels/`) | ה-ViewModel של מסך שלב 1 (`MainPage`). |
 
 ```csharp
 + private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
 + {
 +     builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
-+     builder.Services.AddSingleton<ISecureKeyStorageService, SecureKeyStorageService>();
 +     return builder;
 + }
 +
@@ -126,7 +124,7 @@ builder
 <div class="alert-important">
 <strong>🔑 חובה לשים לב — תגית <code>com.google.android.geo.API_KEY</code>!</strong><br/>
 מלבד ההרשאות, <strong>בתוך תגית <code>&lt;application&gt;...&lt;/application&gt;</code></strong> בקובץ <code>AndroidManifest.xml</code> יש להוסיף תגית <code>&lt;meta-data&gt;</code> עם השם המדויק <strong><code>com.google.android.geo.API_KEY</code></strong>.<br/>
-<strong>זהו המקום המדויק שבו יש להציב את מפתח ה-Google Maps API שלכם</strong> (במקום הערך <code>YOUR_GOOGLE_MAPS_API_KEY_HERE</code>). ללא שורה זו, המפה באנדרואיד תוצג ריקה/אפורה או תיכשל בטעינה!
+במקום להדביק שם את המפתח האמיתי (שעלול להיחשף ב-GitHub!), אנו שמים את המשתנה <strong><code>${GoogleMapsApiKey}</code></strong> — והערך האמיתי מוזרק אוטומטית בזמן Build מקובץ מקומי בשם <code>Secrets.props</code> (שחסום ב-<code>.gitignore</code>).
 </div>
 
 ### השורות שיש להוסיף ב-`Platforms/Android/AndroidManifest.xml`:
@@ -134,8 +132,8 @@ builder
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-+   <application android:allowBackup="false" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true">
-+       <meta-data android:name="com.google.android.geo.API_KEY" android:value="YOUR_GOOGLE_MAPS_API_KEY_HERE" />
+    <application android:allowBackup="false" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true">
++       <meta-data android:name="com.google.android.geo.API_KEY" android:value="${GoogleMapsApiKey}" />
     </application>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -148,7 +146,7 @@ builder
 
 ---
 
-## 5. הנפקת Google Maps API Key והגנה על המפתח ב-GitHub
+## 5. הנפקת Google Maps API Key והגנה עליו באמצעות `Secrets.props` + `.gitignore`
 
 ### איך מנפיקים מפתח אמיתי ב-Google Cloud Console?
 המדריך הרשמי של Google בעברית: [הגדרת מפתח API ל-Maps SDK for Android](https://developers.google.com/maps/documentation/android-sdk/get-api-key?hl=he)
@@ -159,61 +157,10 @@ builder
 4. עברו ל-**APIs & Services -> Credentials**, לחצו **+ CREATE CREDENTIALS -> API key**, והעתיקו את המפתח (מתחיל ב-`AIza...`).
 
 <div class="alert-security">
-<strong>🚨 סכנת חשיפת API Key ב-GitHub — למה אסור להעלות מפתח אמיתי?</strong><br/>
-בוטים אוטומטיים סורקים את GitHub מסביב לשעון ומאתרים מפתחות Google (<code>AIza...</code>) תוך שניות. חשיפת מפתח עלולה לגרום לניצול המכסה שלכם, לחיובים כספיים בלתי צפויים בחשבון Google Cloud ולחסימת האפליקציה. בנוסף, תמיד הגבילו את המפתח ב-Google Cloud לפי <strong>Package Name</strong> ו-<strong>SHA-1</strong> של האפליקציה.
+<strong>🚨 חובה לקרוא לפני ששומרים את המפתח!</strong><br/>
+לעולם אל תדביקו מפתח API אמיתי בקובץ שעולה ל-GitHub! להדרכה מלאה צעד אחר צעד על עבודה עם <code>.gitignore</code>, יצירת קובץ מקומי <code>Secrets.props</code> והזרקה אוטומטית ל-<code>AndroidManifest.xml</code>, פתחו את המדריך הייעודי:<br/>
+<strong><a href="01b-Securing-Api-Key-With-Secrets-And-GitIgnore.pdf">01b-Securing-Api-Key-With-Secrets-And-GitIgnore.pdf</a></strong>
 </div>
-
-### שאלות נפוצות של תלמידים:
-
-#### 1. האם אפשר להעביר ל-`AndroidManifest.xml` את המפתח מתוך `SecureStorage`?
-**לא.** קובץ `AndroidManifest.xml` נארז באופן סטטי לתוך קובץ ה-APK **בזמן הבנייה (Compile Time)**, ומנוע Google Maps של Android קורא ממנו את `com.google.android.geo.API_KEY` בזמן עליית האפליקציה — עוד לפני שקוד ה-C# של `SecureStorage` בכלל רץ.
-
-#### 2. אז איך מגנים על המפתח כשמעלים ל-GitHub — האם צריך למחוק אותו בכל פעם לפני `git push`?
-**לא חייבים למחוק ידנית בכל פעם!** יש שתי דרכים לעבוד בצורה בטוחה:
-* **הדרך הפשוטה לכיתה (הגנה ב-Google Cloud + אי-שמירה ב-Commit):** משאירים את `AndroidManifest.xml` עם Placeholder ב-Git, וכאשר מדביקים מפתח אמיתי לבדיקה מקומית — לא מסמנים את `AndroidManifest.xml` ב-`git commit`, ומוודאים שהמפתח מוגבל ב-Google Cloud Console לפי `Package Name` ו-`SHA-1` (כך גם אם מישהו יראה אותו, הוא לא יעבוד באפליקציה אחרת).
-* **הדרך המקצועית (אוטומטית עם `.gitignore`):** יוצרים קובץ מקומי בשם `Secrets.props` ומוסיפים אותו ל-`.gitignore` (כך שלעולם לא יעלה ל-GitHub), ומזריקים ממנו את המפתח בזמן בנייה באמצעות MSBuild (`ManifestPlaceholders`). כך הקוד ב-GitHub נשאר נקי לתמיד בלי למחוק כלום!
-
----
-
-## 5.1 שמירת מפתח ב-`SecureStorage` המוצפן — באיזו מחלקה כותבים מה?
-
-עבור מפתחות שמשמשים אותנו **בזמן ריצה** (כמו קריאות ל-Google Places / Directions / Geocoding REST API או ל-Gemini AI), שומרים את המפתח באחסון המוצפן של המכשיר (**`SecureStorage`** — Android KeyStore / iOS Keychain).
-
-**באיזו מחלקה רושמים כל חלק של הקוד?**
-
-| פעולה | קובץ ומחלקה מדויקת בפרויקט | תפקיד |
-| :--- | :--- | :--- |
-| **שמירה / קריאה / מחיקה ב-`SecureStorage`** | `Services/SecureKeyStorageService.cs` (ממשק: `ISecureKeyStorageService`) | שכבת השירות היחידה שמדברת עם `SecureStorage.Default`. כך שאר הקוד נשאר נקי וניתן לבדיקה ב-Unit Tests! |
-| **שמירת המפתח שהמשתמש הזין במסך** | `ViewModels/SetupStatusViewModel.cs` (`ExecuteSaveKeyAsync`, `LoadSavedKeyAsync`) | מקבל את `ISecureKeyStorageService` בבנאי (DI), שומר את המפתח וטוען אותו ב-`MainPage.OnAppearing()`. |
-| **שליפת המפתח במסך אחר** | `ViewModels/MapDisplayViewModel.cs` (`LoadStoredKeyStatusAsync`) | מקבל את אותו `ISecureKeyStorageService` ב-DI ושולף את המפתח המוצפן (ומציג אותו מוסתר: `AIza••••9999`). |
-
-קטע הקוד המלא בתוך **`Services/SecureKeyStorageService.cs`**:
-
-```csharp
-using Microsoft.Maui.Storage;
-
-namespace MauiGoogleMapSample.Services;
-
-public class SecureKeyStorageService : ISecureKeyStorageService
-{
-    private const string GoogleMapsApiKeyStorageKey = "coffeemap_google_maps_api_key";
-
-    public async Task SaveApiKeyAsync(string apiKey)
-    {
-+       await SecureStorage.Default.SetAsync(GoogleMapsApiKeyStorageKey, apiKey.Trim());
-    }
-
-    public async Task<string?> GetApiKeyAsync()
-    {
-+       return await SecureStorage.Default.GetAsync(GoogleMapsApiKeyStorageKey);
-    }
-
-    public void ClearApiKey()
-    {
-+       SecureStorage.Default.Remove(GoogleMapsApiKeyStorageKey);
-    }
-}
-```
 
 ---
 
@@ -239,30 +186,30 @@ public class SecureKeyStorageService : ISecureKeyStorageService
   </div>
   <div class="mvvm-arrow">→</div>
   <div class="mvvm-layer mvvm-svc">
-    <strong>Services (לוגיקה ונתונים)</strong><br/>
+    <strong>Service (לוגיקת אימות)</strong><br/>
     <code>MapConfigurationValidator.cs</code><br/>
-    <code>SecureKeyStorageService.cs</code><br/>
-    בדיקות תקינות וגישה לאחסון.
+    בדיקת תקינות פורמט המפתח<br/>
+    והחזרת <code>MapConfigCheckResult</code>.
   </div>
   <div class="mvvm-arrow">→</div>
   <div class="mvvm-layer mvvm-plat">
-    <strong>Platform / OS</strong><br/>
-    <code>AndroidManifest.xml</code><br/>
-    <code>SecureStorage.Default</code><br/>
-    הרשאות ומפתח מוצפן.
+    <strong>Build &amp; Platform</strong><br/>
+    <code>Secrets.props</code> (מקומי)<br/>
+    → <code>AndroidManifest.xml</code><br/>
+    הרשאות + הזרקת מפתח.
   </div>
 </div>
 </div>
 
 ### הסבר על קובץ אימות הקונפיגורציה (`Services/MapConfigurationValidator.cs`)
 
-כדי לעזור לתלמידים ולמשתמש לזהות מיד האם מפתח ה-API הוגדר כראוי, יצרנו את המחלקה `MapConfigurationValidator` ואת טיפוס התוצאה `MapConfigCheckResult(bool IsValid, string StatusTitle, string Details)`.
+כדי לעזור לתלמידים ולמשתמש לזהות מיד האם מפתח ה-API בפורמט תקין, יצרנו את המחלקה `MapConfigurationValidator` ואת טיפוס התוצאה `MapConfigCheckResult(bool IsValid, string StatusTitle, string Details)`.
 
 המתודה `ValidateApiKey(string? apiKey)` מבצעת **3 בדיקות מדורגות**:
 1. **מפתח ריק או רווחים (`string.IsNullOrWhiteSpace`):** מחזירה `IsValid = false` עם הכותרת `"מפתח API חסר"`.
 2. **עדיין מוגדר Placeholder (`YOUR_GOOGLE_MAPS_API_KEY_HERE`):** מחזירה `IsValid = false` ומזכירה שצריך להחליפו במפתח מ-Google Cloud Console.
 3. **אורך קצר מדי (`trimmed.Length < 20`):** מחזירה `IsValid = false` כי מפתחות Google אמיתיים ארוכים מ-20 תווים.
-4. **אחרת:** מחזירה `IsValid = true` (`"פורמט המפתח תקין"`), מה שמפעיל אוטומטית את כפתור `"שמור מוצפן"` דרך `SaveKeyCommand.CanExecute`!
+4. **אחרת:** מחזירה `IsValid = true` (`"פורמט המפתח תקין"`).
 
 ```csharp
 public MapConfigCheckResult ValidateApiKey(string? apiKey)

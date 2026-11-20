@@ -14,12 +14,11 @@ public partial class MapDisplayPage : ContentPage
         BindingContext = _viewModel;
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
         _viewModel.MoveToRegionRequested += OnMoveToRegionRequested;
         Dispatcher.Dispatch(() => SafeMoveToRegion(_viewModel.GetCurrentMapSpan()));
-        await _viewModel.LoadStoredKeyStatusAsync();
     }
 
     protected override void OnDisappearing()

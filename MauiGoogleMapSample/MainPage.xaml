@@ -15,7 +15,7 @@
                    FontAttributes="Bold"
                    HorizontalTextAlignment="Start" />
 
-            <Label Text="שלב 1: הגדרת NuGet, אתחול UseMauiMaps(), הרשאות Android ושמירת מפתח מוצפן"
+            <Label Text="שלב 1: הגדרת NuGet, אתחול UseMauiMaps(), הרשאות Android והזרקת מפתח מ-Secrets.props"
                    FontSize="15"
                    TextColor="{StaticResource Gray600}" />
 
@@ -31,40 +31,34 @@
                     <Label Text="✅ חבילת Microsoft.Maui.Controls.Maps מותקנת" FontSize="14" />
                     <Label Text="✅ קריאה ל-UseMauiMaps() ו-Fluent DI ב-MauiProgram.cs" FontSize="14" />
                     <Label Text="✅ הרשאות ACCESS_FINE_LOCATION ו-ACCESS_COARSE_LOCATION ב-AndroidManifest.xml" FontSize="14" />
-                    <Label Text="🔐 שמירת מפתח API באחסון המוצפן (SecureStorage) — ללא חשיפה בקוד" FontSize="14" />
+                    <Label Text="🔑 הזרקת com.google.android.geo.API_KEY מקובץ מקומי Secrets.props (חסום ב-.gitignore)" FontSize="14" />
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Interactive API Key Validator & SecureStorage -->
+            <!-- Interactive API Key Format Validator -->
             <Border StrokeShape="RoundRectangle 12"
                     Stroke="{StaticResource Gray300}"
                     Padding="16"
                     BackgroundColor="{StaticResource White}">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="אימות ושמירת Google Maps API Key (SecureStorage):"
+                    <Label Text="בדיקת תקינות פורמט Google Maps API Key:"
                            FontSize="16"
                            FontAttributes="Bold" />
 
                     <Entry AutomationId="ApiKeyEntry"
-                           Placeholder="הזן מפתח API לבדיקה ושמירה..."
+                           Placeholder="הדביקו מפתח API לבדיקת פורמט..."
                            Text="{Binding ApiKeyInput}"
                            FlowDirection="LeftToRight" />
 
-                    <HorizontalStackLayout Spacing="8">
+                    <HorizontalStackLayout Spacing="10">
                         <Button AutomationId="ValidateKeyButton"
-                                Text="בדוק תקינות"
+                                Text="בדוק תקינות מפתח"
                                 Command="{Binding ValidateKeyCommand}" />
-                        <Button AutomationId="SaveKeyButton"
-                                Text="שמור מוצפן"
-                                Command="{Binding SaveKeyCommand}" />
-                        <Button AutomationId="ClearKeyButton"
-                                Text="מחק / אפס"
-                                Command="{Binding ClearSavedKeyCommand}"
+                        <Button AutomationId="ResetKeyButton"
+                                Text="איפוס ל-Placeholder"
+                                Command="{Binding ResetToPlaceholderCommand}"
                                 BackgroundColor="{StaticResource Gray500}" />
                     </HorizontalStackLayout>
-
-                    <ActivityIndicator IsRunning="{Binding IsLoading}"
-                                       IsVisible="{Binding IsLoading}" />
 
                     <Border StrokeShape="RoundRectangle 8"
                             Padding="12"
@@ -77,11 +71,6 @@
                             <Label AutomationId="StatusDetailsLabel"
                                    Text="{Binding StatusDetails}"
                                    FontSize="13" />
-                            <Label AutomationId="StorageStatusLabel"
-                                   Text="{Binding StorageStatus}"
-                                   FontSize="13"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource Primary}" />
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>
