@@ -17,7 +17,17 @@ public partial class CoffeePinsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        PinsMapControl.MoveToRegion(_viewModel.GetInitialMapSpan());
+        Dispatcher.Dispatch(() =>
+        {
+            try
+            {
+                PinsMapControl?.MoveToRegion(_viewModel.GetInitialMapSpan());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CoffeeMap] MoveToRegion skipped: {ex.Message}");
+            }
+        });
     }
 
     private void OnPinMarkerClicked(object? sender, PinClickedEventArgs e)

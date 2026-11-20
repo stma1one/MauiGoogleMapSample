@@ -18,7 +18,7 @@ public partial class MapDisplayPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.MoveToRegionRequested += OnMoveToRegionRequested;
-        CoffeeMapControl.MoveToRegion(_viewModel.GetCurrentMapSpan());
+        Dispatcher.Dispatch(() => SafeMoveToRegion(_viewModel.GetCurrentMapSpan()));
         await _viewModel.LoadStoredKeyStatusAsync();
     }
 
@@ -30,6 +30,18 @@ public partial class MapDisplayPage : ContentPage
 
     private void OnMoveToRegionRequested(MapSpan span)
     {
-        CoffeeMapControl.MoveToRegion(span);
+        Dispatcher.Dispatch(() => SafeMoveToRegion(span));
+    }
+
+    private void SafeMoveToRegion(MapSpan span)
+    {
+        try
+        {
+            CoffeeMapControl?.MoveToRegion(span);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CoffeeMap] MoveToRegion skipped: {ex.Message}");
+        }
     }
 }

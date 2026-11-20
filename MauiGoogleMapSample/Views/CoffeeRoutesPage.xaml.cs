@@ -18,8 +18,18 @@ public partial class CoffeeRoutesPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.MapElementsChanged += RefreshMapElements;
-        RoutesMapControl.MoveToRegion(_viewModel.GetInitialMapSpan());
-        RefreshMapElements();
+        Dispatcher.Dispatch(() =>
+        {
+            try
+            {
+                RoutesMapControl?.MoveToRegion(_viewModel.GetInitialMapSpan());
+                RefreshMapElements();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CoffeeMap] Route map init skipped: {ex.Message}");
+            }
+        });
     }
 
     protected override void OnDisappearing()
@@ -30,10 +40,21 @@ public partial class CoffeeRoutesPage : ContentPage
 
     private void RefreshMapElements()
     {
-        RoutesMapControl.MapElements.Clear();
-        foreach (MapElement element in _viewModel.BuildActiveMapElements())
+        Dispatcher.Dispatch(() =>
         {
-            RoutesMapControl.MapElements.Add(element);
-        }
+            try
+            {
+                if (RoutesMapControl is null) return;
+                RoutesMapControl.MapElements.Clear();
+                foreach (MapElement element in _viewModel.BuildActiveMapElements())
+                {
+                    RoutesMapControl.MapElements.Add(element);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CoffeeMap] RefreshMapElements skipped: {ex.Message}");
+            }
+        });
     }
 }

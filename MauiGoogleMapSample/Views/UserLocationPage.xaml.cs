@@ -19,7 +19,7 @@ public partial class UserLocationPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.MoveToRegionRequested += OnMoveToRegionRequested;
-        GpsMapControl.MoveToRegion(MapSpan.FromCenterAndRadius(new Location(32.0636, 34.7731), Distance.FromKilometers(3.0)));
+        Dispatcher.Dispatch(() => SafeMoveToRegion(MapSpan.FromCenterAndRadius(new Location(32.0636, 34.7731), Distance.FromKilometers(3.0))));
     }
 
     protected override void OnDisappearing()
@@ -30,6 +30,18 @@ public partial class UserLocationPage : ContentPage
 
     private void OnMoveToRegionRequested(MapSpan span)
     {
-        GpsMapControl.MoveToRegion(span);
+        Dispatcher.Dispatch(() => SafeMoveToRegion(span));
+    }
+
+    private void SafeMoveToRegion(MapSpan span)
+    {
+        try
+        {
+            GpsMapControl?.MoveToRegion(span);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CoffeeMap] MoveToRegion skipped: {ex.Message}");
+        }
     }
 }
