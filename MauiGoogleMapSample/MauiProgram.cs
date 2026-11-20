@@ -6,6 +6,7 @@ using Microsoft.Maui.DevFlow.Agent;
 using Microsoft.Extensions.Logging;
 using MauiGoogleMapSample.Services;
 using MauiGoogleMapSample.ViewModels;
+using MauiGoogleMapSample.Views;
 
 namespace MauiGoogleMapSample;
 
@@ -41,18 +42,21 @@ public static class MauiProgram
     private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
     {
         builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
+        builder.Services.AddSingleton<ICoffeeRegionService, CoffeeRegionService>();
         return builder;
     }
 
     private static MauiAppBuilder RegisterViewModels(this MauiAppBuilder builder)
     {
         builder.Services.AddTransient<SetupStatusViewModel>();
+        builder.Services.AddTransient<MapDisplayViewModel>();
         return builder;
     }
 
     private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
     {
         builder.Services.AddTransient<MainPage>();
+        builder.Services.AddTransient<MapDisplayPage>();
         return builder;
     }
 }

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
+             xmlns:models="clr-namespace:MauiGoogleMapSample.Models"
+             xmlns:vm="clr-namespace:MauiGoogleMapSample.ViewModels"
+             x:Class="MauiGoogleMapSample.Views.MapDisplayPage"
+             x:DataType="vm:MapDisplayViewModel"
+             FlowDirection="RightToLeft"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="8" Padding="12">
+
+        <!-- Map Type Switcher & Zoom Controls -->
+        <HorizontalStackLayout Grid.Row="0" Spacing="8" HorizontalOptions="Center">
+            <Button AutomationId="StreetMapButton"
+                    Text="רחובות"
+                    Command="{Binding SetMapTypeCommand}"
+                    CommandParameter="Street" />
+            <Button AutomationId="SatelliteMapButton"
+                    Text="לוויין"
+                    Command="{Binding SetMapTypeCommand}"
+                    CommandParameter="Satellite" />
+            <Button AutomationId="HybridMapButton"
+                    Text="משולב"
+                    Command="{Binding SetMapTypeCommand}"
+                    CommandParameter="Hybrid" />
+            <Button AutomationId="ZoomInButton"
+                    Text="+"
+                    WidthRequest="44"
+                    Command="{Binding ZoomInCommand}" />
+            <Button AutomationId="ZoomOutButton"
+                    Text="-"
+                    WidthRequest="44"
+                    Command="{Binding ZoomOutCommand}" />
+        </HorizontalStackLayout>
+
+        <!-- Coffee Hub Region Selector -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Regions}"
+                        ItemsLayout="HorizontalList"
+                        HeightRequest="48"
+                        SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:CoffeeRegion">
+                    <Button Text="{Binding Name}"
+                            Margin="4,2"
+                            FontSize="13"
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MapDisplayViewModel}}, Path=SelectRegionCommand}"
+                            CommandParameter="{Binding .}" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Native MAUI Google Map Control -->
+        <Border Grid.Row="2"
+                StrokeShape="RoundRectangle 12"
+                Stroke="{StaticResource Gray300}">
+            <maps:Map x:Name="CoffeeMapControl"
+                      AutomationId="CoffeeMapControl"
+                      MapType="{Binding SelectedMapType}"
+                      IsScrollEnabled="True"
+                      IsZoomEnabled="True" />
+        </Border>
+
+        <!-- Current Map State Summary -->
+        <Border Grid.Row="3"
+                StrokeShape="RoundRectangle 8"
+                Padding="10"
+                BackgroundColor="{StaticResource Gray100}">
+            <Label AutomationId="RegionSummaryLabel"
+                   Text="{Binding RegionSummary}"
+                   FontSize="13"
+                   FontAttributes="Bold"
+                   HorizontalTextAlignment="Center" />
+        </Border>
+
+    </Grid>
+</ContentPage>

@@ -1,4 +1,4 @@
-﻿using MauiGoogleMapSample.ViewModels;
+using MauiGoogleMapSample.ViewModels;
 
 namespace MauiGoogleMapSample;
 

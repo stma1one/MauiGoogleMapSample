@@ -12,11 +12,12 @@
 ```mermaid
 flowchart TD
   AppShell(["AppShell (נקודת פתיחה וניווט)"])
+  AppShell -->|"Shell Tab / Flyout"| MapDisplayPage
   AppShell -->|"Shell Tab / Flyout"| MainPage
 ```
 
 ### פרומפט שמור ליצירת תרשים זרימת המסכים בעיצוב גרפי:
-> צור תרשים זרימת מסכים (Screen Flow Diagram) נקי וברור עבור אפליקציית .NET MAUI. מסך הפתיחה וההיררכיה הראשיים מנוהלים ב-`AppShell`, והמסכים בפרויקט הם: `MainPage`. הצג חיצים ברורים למעברי הניווט (`Shell.Current.GoToAsync`) בין המסכים לפי מבנה ה-Mermaid שלעיל.
+> צור תרשים זרימת מסכים (Screen Flow Diagram) נקי וברור עבור אפליקציית .NET MAUI. מסך הפתיחה וההיררכיה הראשיים מנוהלים ב-`AppShell`, והמסכים בפרויקט הם: `MainPage, MapDisplayPage`. הצג חיצים ברורים למעברי הניווט (`Shell.Current.GoToAsync`) בין המסכים לפי מבנה ה-Mermaid שלעיל.
 
 ---
 
@@ -31,6 +32,20 @@ classDiagram
   }
   class MainPage {
   }
+  class CoffeeRegion {
+    +string Name
+    +string Description
+    +double Latitude
+    +double Longitude
+    +double DefaultRadiusKm
+  }
+  class CoffeeRegionService {
+    +GetDefaultRegions() IReadOnlyList~CoffeeRegion~
+    +BuildMapSpan() MapSpan
+  }
+  class ICoffeeRegionService {
+    <<interface>>
+  }
   class IMapConfigurationValidator {
     <<interface>>
     +MapConfigCheckResult() record
@@ -40,16 +55,33 @@ classDiagram
   }
   class BaseViewModel {
   }
+  class MapDisplayViewModel {
+    +ObservableCollection~CoffeeRegion~ Regions
+    +GetCurrentMapSpan() MapSpan
+  }
   class SetupStatusViewModel {
+  }
+  class MapDisplayPage {
   }
   class ArchitectureSmokeTests {
     +TestHarness_WhenInitialized_PassesSanityCheck() void
+  }
+  class CoffeeRegionServiceTests {
+    +GetDefaultRegions_ReturnsThreeIsraeliCoffeeHubs() void
+    +BuildMapSpan_ReturnsSpanCenteredOnRegionCoordinates() void
+    +BuildMapSpan_WhenRadiusTooSmall_ClampsToMinimum() void
   }
   class MapConfigurationValidatorTests {
     +ValidateApiKey_WhenNullOrEmpty_ReturnsInvalid() void
     +ValidateApiKey_WhenPlaceholder_ReturnsInvalidWithPlaceholderMessage() void
     +ValidateApiKey_WhenTooShort_ReturnsInvalid() void
     +ValidateApiKey_WhenValidLength_ReturnsValid() void
+  }
+  class MapDisplayViewModelTests {
+    +Constructor_InitializesWithStreetMapAndFirstRegion() void
+    +SetMapTypeCommand_SwitchesToSatelliteAndHybrid() void
+    +SelectRegionCommand_UpdatesRegionAndRaisesMoveToRegionEvent() void
+    +ZoomInAndOutCommands_UpdateRadiusAndRespectCanExecuteBounds() void
   }
   class SetupStatusViewModelTests {
     +Constructor_InitializesWithPlaceholderAndInvalidStatus() void
@@ -59,10 +91,15 @@ classDiagram
   }
   ContentPage <|-- MainPage
   MainPage ..> SetupStatusViewModel : DI
+  ICoffeeRegionService <|-- CoffeeRegionService
   IMapConfigurationValidator <|-- MapConfigurationValidator
   INotifyPropertyChanged <|-- BaseViewModel
+  BaseViewModel <|-- MapDisplayViewModel
+  MapDisplayViewModel ..> ICoffeeRegionService : DI
   BaseViewModel <|-- SetupStatusViewModel
   SetupStatusViewModel ..> IMapConfigurationValidator : DI
+  ContentPage <|-- MapDisplayPage
+  MapDisplayPage ..> MapDisplayViewModel : DI
 ```
 
 ### פרומפט שמור ליצירת תרשים ה-UML בעיצוב גרפי:

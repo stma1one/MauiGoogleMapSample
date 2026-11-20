@@ -18,3 +18,19 @@
   * `MauiGoogleMapSample.Tests/MapConfigurationValidatorTests.cs` ו-`SetupStatusViewModelTests.cs`.
   * מדריך ומשימה לתלמיד ב-PDF: `MauiGoogleMapSample/Docs/01-Setup-And-Permissions.pdf` ו-`MauiGoogleMapSample/Docs/Assignments/01-Setup-And-Permissions-Assignment.pdf`.
 * **ראו פירוט מלא ותצוגת מסך בפרק:** [שלב 1 — הגדרות והרשאות (`MainPage`)](Guides/MainPage-Guide.md)
+
+---
+
+## שלב 2: הצגת מפה, סוגי מפות (`MapType`) ומיקוד אזור (`stage/02-map-display-and-types`)
+
+* **מצב עבודה:** `MAXIMIZE CODE GENERATED`
+* **מטרת השלב:** הוספת פקד `<maps:Map>` ב-XAML, מעבר בין סוגי מפות (`Street`, `Satellite`, `Hybrid`), שליטה בזום (`ZoomInCommand`, `ZoomOutCommand` עם `CanExecute`), ומעבר בין אזורי קפה מרכזיים באמצעות `MapSpan.FromCenterAndRadius`.
+* **קבצים שנוצרו/עודכנו:**
+  * `MauiGoogleMapSample/Models/CoffeeRegion.cs`
+  * `MauiGoogleMapSample/Services/ICoffeeRegionService.cs` ו-`CoffeeRegionService.cs`
+  * `MauiGoogleMapSample/ViewModels/MapDisplayViewModel.cs`
+  * `MauiGoogleMapSample/Views/MapDisplayPage.xaml` ו-`MapDisplayPage.xaml.cs`
+  * `MauiGoogleMapSample/AppShell.xaml` ו-`MauiProgram.cs` (רישום Fluent Builder)
+  * `MauiGoogleMapSample.Tests/CoffeeRegionServiceTests.cs` ו-`MapDisplayViewModelTests.cs`
+  * מסמכי PDF לתלמיד: `MauiGoogleMapSample/Docs/02-Map-Display-And-Types.pdf` ו-`MauiGoogleMapSample/Docs/Assignments/02-Map-Display-Assignment.pdf`.
+* **ראו פירוט מלא ותצוגת מסך בפרק:** [שלב 2 — תצוגת מפה (`MapDisplayPage`)](Guides/MapDisplayPage-Guide.md)

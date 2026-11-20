@@ -4,11 +4,20 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:MauiGoogleMapSample"
-    Title="MauiGoogleMapSample">
+    xmlns:views="clr-namespace:MauiGoogleMapSample.Views"
+    FlowDirection="RightToLeft"
+    Title="CoffeeMap">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent
+            Title="שלב 2: תצוגת מפה"
+            ContentTemplate="{DataTemplate views:MapDisplayPage}"
+            Route="MapDisplayPage" />
+
+        <ShellContent
+            Title="שלב 1: הגדרות"
+            ContentTemplate="{DataTemplate local:MainPage}"
+            Route="MainPage" />
+    </TabBar>
 
 </Shell>

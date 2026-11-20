@@ -1,0 +1,20 @@
+{
+  "screen": "MapDisplayPage",
+  "mockup": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Mockups\\MapDisplayPage.html",
+  "overview": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\MapDisplayPage-overview.png",
+  "blocks": [
+    {
+      "name": "map-controls",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\MapDisplayPage-block1-map-controls.png"
+    },
+    {
+      "name": "region-selector",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\MapDisplayPage-block2-region-selector.png"
+    },
+    {
+      "name": "map-view",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\MapDisplayPage-block3-map-view.png"
+    }
+  ],
+  "android": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\MapDisplayPage-android.png"
+}

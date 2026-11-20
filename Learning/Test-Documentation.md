@@ -19,3 +19,20 @@
 | `ValidateKeyCommand_WhenApiKeyEmpty_CannotExecute` | ניקוי שדה המפתח | `ValidateKeyCommand.CanExecute(null) == false` |
 | `ValidateKeyCommand_WhenValidKeyEntered_UpdatesIsConfiguredToTrue` | הזנת מפתח תקין והפעלת הפקודה | `CanExecute == true`, `IsConfigured == true` |
 | `ResetToPlaceholderCommand_RestoresPlaceholderAndInvalidState` | הפעלת כפתור האיפוס | מחזיר את `ApiKeyInput` ל-Placeholder ו-`IsConfigured == false` |
+
+## שלב 2 (`stage/02-map-display-and-types`)
+
+### 3. `CoffeeRegionServiceTests` (בדיקת שירות `CoffeeRegionService`)
+| שם הבדיקה | תרחיש נבדק | תוצאה צפויה |
+| :--- | :--- | :--- |
+| `GetDefaultRegions_ReturnsThreeIsraeliCoffeeHubs` | שליפת אזורי ברירת מחדל | מחזיר 3 אזורים (תל אביב, ירושלים, חיפה) |
+| `BuildMapSpan_ReturnsSpanCenteredOnRegionCoordinates` | בניית `MapSpan` לאזור תל אביב ברדיוס 2 ק"מ | מרכז ורדיוס תואמים לקואורדינטות תל אביב |
+| `BuildMapSpan_WhenRadiusTooSmall_ClampsToMinimum` | רדיוס קטן מדי (`0.01`) | מוגבל למינימום בטוח (`0.2` ק"מ) |
+
+### 4. `MapDisplayViewModelTests` (בדיקת `MapDisplayViewModel`)
+| שם הבדיקה | תרחיש נבדק | תוצאה צפויה |
+| :--- | :--- | :--- |
+| `Constructor_InitializesWithStreetMapAndFirstRegion` | אתחול ברירת מחדל | `MapType.Street`, 3 אזורים, האזור הראשון נבחר |
+| `SetMapTypeCommand_SwitchesToSatelliteAndHybrid` | החלפת סוג מפה | עובר ל-`Satellite` ול-`Hybrid` ומעדכן `RegionSummary` |
+| `SelectRegionCommand_UpdatesRegionAndRaisesMoveToRegionEvent` | בחירת אזור ירושלים | מעדכן `SelectedRegion` ומפעיל `MoveToRegionRequested` |
+| `ZoomInAndOutCommands_UpdateRadiusAndRespectCanExecuteBounds` | זום פנימה והחוצה בגבולות | מקטין רדיוס ומשבית `ZoomInCommand` בגבול המינימלי |

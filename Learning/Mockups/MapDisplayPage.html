@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>CoffeeMap — Stage 2 MapDisplayPage Mockup</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { margin: 0; padding: 24px; background: #eef2f6; display: flex; justify-content: center; }
+    .phone-frame {
+      width: 390px;
+      background: #111827;
+      border-radius: 38px;
+      padding: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.22);
+    }
+    .screen {
+      background: #f8fafc;
+      border-radius: 26px;
+      overflow: hidden;
+      min-height: 760px;
+      display: flex;
+      flex-direction: column;
+    }
+    .status-bar {
+      background: #4e342e;
+      color: #fff;
+      padding: 8px 18px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      direction: ltr;
+    }
+    .app-bar {
+      background: #5d4037;
+      color: #fff;
+      padding: 14px 18px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .content {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+    .toolbar {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      background: #6d4c41;
+      color: #fff;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .btn.active { background: #3e2723; border: 2px solid #d7ccc8; }
+    .regions {
+      display: flex;
+      gap: 6px;
+      overflow: hidden;
+    }
+    .region-chip {
+      background: #8d6e63;
+      color: #fff;
+      border-radius: 16px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .map-canvas {
+      flex: 1;
+      min-height: 440px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px) 0 0 / 32px 32px,
+        linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px) 0 0 / 32px 32px,
+        linear-gradient(135deg, #d9ead3 0%, #cfe2f3 50%, #e6f4ea 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .road-h {
+      position: absolute;
+      top: 48%;
+      left: 0;
+      right: 0;
+      height: 14px;
+      background: #fde68a;
+      border-top: 2px solid #f59e0b;
+      border-bottom: 2px solid #f59e0b;
+    }
+    .road-v {
+      position: absolute;
+      left: 52%;
+      top: 0;
+      bottom: 0;
+      width: 12px;
+      background: #ffffff;
+      border-left: 2px solid #cbd5e1;
+      border-right: 2px solid #cbd5e1;
+    }
+    .map-badge {
+      position: relative;
+      z-index: 2;
+      background: rgba(255,255,255,0.94);
+      padding: 10px 14px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #3e2723;
+    }
+    .summary {
+      background: #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      color: #1e293b;
+    }
+    .tab-bar {
+      display: flex;
+      background: #ffffff;
+      border-top: 1px solid #cbd5e1;
+      padding: 10px 0;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .tab { flex: 1; text-align: center; color: #64748b; }
+    .tab.active { color: #5d4037; }
+  </style>
+</head>
+<body>
+  <div class="phone-frame" data-guide-overview>
+    <div class="screen">
+      <div class="status-bar">
+        <span>17:38</span>
+        <span>5G • 92%</span>
+      </div>
+      <div class="app-bar">CoffeeMap — שלב 2: תצוגת מפה</div>
+      <div class="content">
+        <div class="toolbar" data-guide-block="map-controls">
+          <div class="btn active">רחובות</div>
+          <div class="btn">לוויין</div>
+          <div class="btn">משולב</div>
+          <div class="btn">+</div>
+          <div class="btn">-</div>
+        </div>
+        <div class="regions" data-guide-block="region-selector">
+          <div class="region-chip">תל אביב — רוטשילד</div>
+          <div class="region-chip">ירושלים — מחנה יהודה</div>
+          <div class="region-chip">חיפה</div>
+        </div>
+        <div class="map-canvas" data-guide-block="map-view">
+          <div class="road-h"></div>
+          <div class="road-v"></div>
+          <div class="map-badge">🗺️ Google Maps — תל אביב (רוטשילד)<br/><span style="font-size:11px;font-weight:400;">MapSpan: 32.0636, 34.7731 | רדיוס 1.2 ק"מ</span></div>
+        </div>
+        <div class="summary">תל אביב — רוטשילד | תצוגה: רחובות (Street) | רדיוס: 1.2 ק"מ</div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active">שלב 2: תצוגת מפה</div>
+        <div class="tab">שלב 1: הגדרות</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
