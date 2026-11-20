@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>CoffeeMap — Stage 5 CoffeeRoutesPage Mockup</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { margin: 0; padding: 24px; background: #eef2f6; display: flex; justify-content: center; }
+    .phone-frame { width: 390px; background: #111827; border-radius: 38px; padding: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.22); }
+    .screen { background: #f8fafc; border-radius: 26px; overflow: hidden; min-height: 760px; display: flex; flex-direction: column; }
+    .status-bar { background: #4e342e; color: #fff; padding: 8px 18px; font-size: 12px; display: flex; justify-content: space-between; direction: ltr; }
+    .app-bar { background: #5d4037; color: #fff; padding: 14px 18px; font-size: 16px; font-weight: 700; }
+    .content { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .toolbar { display: flex; gap: 6px; justify-content: center; }
+    .btn { background: #6d4c41; color: #fff; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; }
+    .btn-gray { background: #64748b; }
+    .map-canvas { flex: 1; min-height: 460px; border-radius: 12px; border: 1px solid #cbd5e1; background: linear-gradient(135deg, #d9ead3 0%, #cfe2f3 50%, #e6f4ea 100%); position: relative; overflow: hidden; }
+    .delivery-circle { position: absolute; top: 185px; left: 95px; width: 170px; height: 170px; border-radius: 50%; background: rgba(37,99,235,0.18); border: 3px solid #2563eb; }
+    .summary { background: #e2e8f0; border-radius: 8px; padding: 10px; font-size: 12px; font-weight: 700; text-align: center; color: #1e293b; }
+  </style>
+</head>
+<body>
+  <div class="phone-frame" data-guide-overview>
+    <div class="screen">
+      <div class="status-bar"><span>18:42</span><span>5G • 89%</span></div>
+      <div class="app-bar">CoffeeMap — שלב 5: מסלולים וצורות</div>
+      <div class="content">
+        <div class="toolbar" data-guide-block="overlay-controls">
+          <div class="btn">מסלול קפה</div>
+          <div class="btn">אזור משלוח</div>
+          <div class="btn btn-gray">נקה שכבות</div>
+        </div>
+        <div class="map-canvas" data-guide-block="routes-map">
+          <div class="delivery-circle"></div>
+          <svg width="338" height="460" style="position:absolute; top:0; left:0;">
+            <polyline points="180,270 165,195 110,305 190,80" fill="none" stroke="#6D4C41" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="180" cy="270" r="7" fill="#dc2626" />
+            <circle cx="165" cy="195" r="7" fill="#dc2626" />
+            <circle cx="110" cy="305" r="7" fill="#dc2626" />
+            <circle cx="190" cy="80" r="7" fill="#dc2626" />
+          </svg>
+        </div>
+        <div class="summary" data-guide-block="route-summary">אורך סיור הקפה: 6.23 ק"מ | מסלול פעיל | אזור משלוח פעיל (800 מ')</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

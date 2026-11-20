@@ -50,3 +50,11 @@
 * **מטרת השלב:** בקשת `Permissions.LocationWhenInUse`, קריאת `Geolocation`, הצגת `IsShowingUser`, חישוב תחנת הקפה הקרובה ביותר, ובדיקות יחידה עם `FakeLocationService`.
 * **מסמכי PDF לתלמיד:** `MauiGoogleMapSample/Docs/04-GPS-And-User-Location.pdf` ו-`MauiGoogleMapSample/Docs/Assignments/04-GPS-And-User-Location-Assignment.pdf`.
 * **ראו פירוט ותצוגת מסך בפרק:** [שלב 4 — מיקום GPS (`UserLocationPage`)](Guides/UserLocationPage-Guide.md)
+
+---
+
+## שלב 5: ציור מסלולים (`Polyline`) וצורות גיאוגרפיות (`Circle` / `Polygon`) (`stage/05-shapes-and-routes`)
+
+* **מטרת השלב:** ציור `Polyline` (מסלול סיור קפה) ו-`Circle` (אזור משלוח) מעל `Map.MapElements`, חישוב מרחק מסלול כולל, ושליטה בשכבות דרך MVVM ו-`ICommand.CanExecute`.
+* **מסמכי PDF לתלמיד:** `MauiGoogleMapSample/Docs/05-Shapes-And-Routes.pdf` ו-`MauiGoogleMapSample/Docs/Assignments/05-Shapes-And-Routes-Assignment.pdf`.
+* **ראו פירוט ותצוגת מסך בפרק:** [שלב 5 — מסלולים וצורות (`CoffeeRoutesPage`)](Guides/CoffeeRoutesPage-Guide.md)

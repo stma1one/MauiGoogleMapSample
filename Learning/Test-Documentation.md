@@ -57,3 +57,15 @@
 | `ExecuteLocateMeAsync_WhenPermissionGranted_SetsShowingUserAndFindsNearestStation` | הרשאה אושרה ומיקום ליד שנקין | `IsShowingUser == true`, מוצא `"קליית שנקין"` ומפעיל `MoveToRegionRequested` |
 | `ExecuteLocateMeAsync_WhenPermissionDenied_DisablesShowingUserAndReportsError` | הרשאת מיקום נדחתה | `IsShowingUser == false`, הודעת שגיאה ידידותית |
 | `ExecuteLocateMeAsync_WhenServiceThrows_RecoversGracefullyAndResetsIsLoading` | חריגה מחיישן GPS | התאוששות מסודרת ו-`IsLoading == false` |
+
+## שלב 5 (`stage/05-shapes-and-routes`)
+
+### 7. `CoffeeRouteServiceTests` & `CoffeeRoutesViewModelTests`
+| שם הבדיקה | תרחיש נבדק | תוצאה צפויה |
+| :--- | :--- | :--- |
+| `BuildCoffeeTourPolyline_ContainsOneGeopathPointPerStation` | בניית `Polyline` | כמות נקודות ב-`Geopath` זהה למספר התחנות |
+| `BuildDeliveryZoneCircle_ClampsSmallRadiusToMinimum50Meters` | רדיוס קטן מ-50 מ' | מוגבל למינימום 50 מ' |
+| `CalculateTotalTourDistanceKm_ReturnsPositiveDistanceForMultipleStations` | חישוב אורך סיור הקפה | מחזיר מרחק כולל תקין בק"מ |
+| `Constructor_StartsWithBothOverlaysActiveAndTwoMapElements` | אתחול `CoffeeRoutesViewModel` | 2 אלמנטים (`Polyline` + `Circle`) פעילים |
+| `ClearOverlaysCommand_RemovesAllElementsAndDisablesCommand` | ניקוי שכבות | מרוקן את האלמנטים ומשבית `ClearOverlaysCommand` |
+| `ToggleRouteCommand_TogglesPolylineAndRaisesMapElementsChanged` | הסתרת מסלול | מסיר `Polyline`, משאיר `Circle`, ומפעיל אירוע |

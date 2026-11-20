@@ -45,6 +45,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ICoffeeRegionService, CoffeeRegionService>();
         builder.Services.AddSingleton<ICoffeeStationService, CoffeeStationService>();
         builder.Services.AddSingleton<ILocationService, LocationService>();
+        builder.Services.AddSingleton<ICoffeeRouteService, CoffeeRouteService>();
         return builder;
     }
 
@@ -54,6 +55,7 @@ public static class MauiProgram
         builder.Services.AddTransient<MapDisplayViewModel>();
         builder.Services.AddTransient<CoffeePinsViewModel>();
         builder.Services.AddTransient<UserLocationViewModel>();
+        builder.Services.AddTransient<CoffeeRoutesViewModel>();
         return builder;
     }
 
@@ -63,6 +65,7 @@ public static class MauiProgram
         builder.Services.AddTransient<MapDisplayPage>();
         builder.Services.AddTransient<CoffeePinsPage>();
         builder.Services.AddTransient<UserLocationPage>();
+        builder.Services.AddTransient<CoffeeRoutesPage>();
         return builder;
     }
 }

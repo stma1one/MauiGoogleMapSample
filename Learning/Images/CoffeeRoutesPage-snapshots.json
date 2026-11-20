@@ -1,0 +1,20 @@
+{
+  "screen": "CoffeeRoutesPage",
+  "mockup": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Mockups\\CoffeeRoutesPage.html",
+  "overview": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeeRoutesPage-overview.png",
+  "blocks": [
+    {
+      "name": "overlay-controls",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeeRoutesPage-block1-overlay-controls.png"
+    },
+    {
+      "name": "routes-map",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeeRoutesPage-block2-routes-map.png"
+    },
+    {
+      "name": "route-summary",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeeRoutesPage-block3-route-summary.png"
+    }
+  ],
+  "android": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\CoffeeRoutesPage-android.png"
+}

@@ -12,6 +12,7 @@
 ```mermaid
 flowchart TD
   AppShell(["AppShell (נקודת פתיחה וניווט)"])
+  AppShell -->|"Shell Tab / Flyout"| CoffeeRoutesPage
   AppShell -->|"Shell Tab / Flyout"| UserLocationPage
   AppShell -->|"Shell Tab / Flyout"| CoffeePinsPage
   AppShell -->|"Shell Tab / Flyout"| MapDisplayPage
@@ -19,7 +20,7 @@ flowchart TD
 ```
 
 ### פרומפט שמור ליצירת תרשים זרימת המסכים בעיצוב גרפי:
-> צור תרשים זרימת מסכים (Screen Flow Diagram) נקי וברור עבור אפליקציית .NET MAUI. מסך הפתיחה וההיררכיה הראשיים מנוהלים ב-`AppShell`, והמסכים בפרויקט הם: `CoffeePinsPage, MainPage, MapDisplayPage, UserLocationPage`. הצג חיצים ברורים למעברי הניווט (`Shell.Current.GoToAsync`) בין המסכים לפי מבנה ה-Mermaid שלעיל.
+> צור תרשים זרימת מסכים (Screen Flow Diagram) נקי וברור עבור אפליקציית .NET MAUI. מסך הפתיחה וההיררכיה הראשיים מנוהלים ב-`AppShell`, והמסכים בפרויקט הם: `CoffeePinsPage, CoffeeRoutesPage, MainPage, MapDisplayPage, UserLocationPage`. הצג חיצים ברורים למעברי הניווט (`Shell.Current.GoToAsync`) בין המסכים לפי מבנה ה-Mermaid שלעיל.
 
 ---
 
@@ -54,11 +55,19 @@ classDiagram
     +GetDefaultRegions() IReadOnlyList~CoffeeRegion~
     +BuildMapSpan() MapSpan
   }
+  class CoffeeRouteService {
+    +BuildCoffeeTourPolyline() Polyline
+    +BuildDeliveryZoneCircle() Circle
+    +CalculateTotalTourDistanceKm() double
+  }
   class CoffeeStationService {
     +GetStations() IReadOnlyList~CoffeeStation~
     +FilterStations() IReadOnlyList~CoffeeStation~
   }
   class ICoffeeRegionService {
+    <<interface>>
+  }
+  class ICoffeeRouteService {
     <<interface>>
   }
   class ICoffeeStationService {
@@ -85,6 +94,11 @@ classDiagram
     +ObservableCollection~CoffeeStation~ Stations
     +GetInitialMapSpan() MapSpan
   }
+  class CoffeeRoutesViewModel {
+    +ObservableCollection~CoffeeStation~ Stations
+    +BuildActiveMapElements() IReadOnlyList~MapElement~
+    +GetInitialMapSpan() MapSpan
+  }
   class MapDisplayViewModel {
     +ObservableCollection~CoffeeRegion~ Regions
     +GetCurrentMapSpan() MapSpan
@@ -96,6 +110,8 @@ classDiagram
     +ExecuteLocateMeAsync() Task
   }
   class CoffeePinsPage {
+  }
+  class CoffeeRoutesPage {
   }
   class MapDisplayPage {
   }
@@ -113,6 +129,16 @@ classDiagram
     +GetDefaultRegions_ReturnsThreeIsraeliCoffeeHubs() void
     +BuildMapSpan_ReturnsSpanCenteredOnRegionCoordinates() void
     +BuildMapSpan_WhenRadiusTooSmall_ClampsToMinimum() void
+  }
+  class CoffeeRouteServiceTests {
+    +BuildCoffeeTourPolyline_ContainsOneGeopathPointPerStation() void
+    +BuildDeliveryZoneCircle_ClampsSmallRadiusToMinimum50Meters() void
+    +CalculateTotalTourDistanceKm_ReturnsPositiveDistanceForMultipleStations() void
+  }
+  class CoffeeRoutesViewModelTests {
+    +Constructor_StartsWithBothOverlaysActiveAndTwoMapElements() void
+    +ClearOverlaysCommand_RemovesAllElementsAndDisablesCommand() void
+    +ToggleRouteCommand_TogglesPolylineAndRaisesMapElementsChanged() void
   }
   class CoffeeStationServiceTests {
     +GetStations_ReturnsFourStationsWithValidLocations() void
@@ -147,12 +173,16 @@ classDiagram
   ContentPage <|-- MainPage
   MainPage ..> SetupStatusViewModel : DI
   ICoffeeRegionService <|-- CoffeeRegionService
+  ICoffeeRouteService <|-- CoffeeRouteService
   ICoffeeStationService <|-- CoffeeStationService
   ILocationService <|-- LocationService
   IMapConfigurationValidator <|-- MapConfigurationValidator
   INotifyPropertyChanged <|-- BaseViewModel
   BaseViewModel <|-- CoffeePinsViewModel
   CoffeePinsViewModel ..> ICoffeeStationService : DI
+  BaseViewModel <|-- CoffeeRoutesViewModel
+  CoffeeRoutesViewModel ..> ICoffeeStationService : DI
+  CoffeeRoutesViewModel ..> ICoffeeRouteService : DI
   BaseViewModel <|-- MapDisplayViewModel
   MapDisplayViewModel ..> ICoffeeRegionService : DI
   BaseViewModel <|-- SetupStatusViewModel
@@ -162,6 +192,8 @@ classDiagram
   UserLocationViewModel ..> ICoffeeStationService : DI
   ContentPage <|-- CoffeePinsPage
   CoffeePinsPage ..> CoffeePinsViewModel : DI
+  ContentPage <|-- CoffeeRoutesPage
+  CoffeeRoutesPage ..> CoffeeRoutesViewModel : DI
   ContentPage <|-- MapDisplayPage
   MapDisplayPage ..> MapDisplayViewModel : DI
   ContentPage <|-- UserLocationPage
