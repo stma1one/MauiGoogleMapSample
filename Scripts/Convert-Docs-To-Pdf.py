@@ -136,35 +136,40 @@ img {
     background: #f8fafc;
     border: 1px solid #cbd5e1;
     border-radius: 10px;
-    padding: 14px;
+    padding: 12px 14px;
     margin: 14px 0;
     page-break-inside: avoid;
+    overflow: hidden;
 }
 .mvvm-flow {
     display: flex;
+    flex-direction: column;
     align-items: stretch;
-    justify-content: space-between;
-    gap: 8px;
+    gap: 4px;
     margin-top: 10px;
 }
 .mvvm-layer {
-    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
     border-radius: 8px;
-    padding: 10px;
-    text-align: center;
-    font-size: 9.2pt;
+    padding: 8px 12px;
+    text-align: right;
+    font-size: 9.5pt;
+    line-height: 1.45;
     border: 2px solid #cbd5e1;
+    overflow-wrap: anywhere;
 }
 .mvvm-view { background: #dbeafe; border-color: #2563eb; }
 .mvvm-vm { background: #fef3c7; border-color: #d97706; }
 .mvvm-svc { background: #dcfce7; border-color: #16a34a; }
 .mvvm-plat { background: #f3e8ff; border-color: #9333ea; }
 .mvvm-arrow {
-    display: flex;
-    align-items: center;
-    font-size: 16pt;
+    text-align: center;
+    font-size: 13pt;
     font-weight: 800;
     color: #475569;
+    line-height: 1;
+    padding: 1px 0;
 }
 """
 

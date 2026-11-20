@@ -177,21 +177,21 @@ builder
     שדה קלט, כפתורים וטקסטים.<br/>
     מתחבר ב-<code>Binding</code> בלבד.
   </div>
-  <div class="mvvm-arrow">⇄</div>
+  <div class="mvvm-arrow">⇅</div>
   <div class="mvvm-layer mvvm-vm">
     <strong>ViewModel (מצב ופקודות)</strong><br/>
     <code>SetupStatusViewModel.cs</code><br/>
     <code>INotifyPropertyChanged</code><br/>
     <code>ICommand</code> + <code>CanExecute</code>
   </div>
-  <div class="mvvm-arrow">→</div>
+  <div class="mvvm-arrow">↓</div>
   <div class="mvvm-layer mvvm-svc">
     <strong>Service (לוגיקת אימות)</strong><br/>
     <code>MapConfigurationValidator.cs</code><br/>
     בדיקת תקינות פורמט המפתח<br/>
     והחזרת <code>MapConfigCheckResult</code>.
   </div>
-  <div class="mvvm-arrow">→</div>
+  <div class="mvvm-arrow">↓</div>
   <div class="mvvm-layer mvvm-plat">
     <strong>Build &amp; Platform</strong><br/>
     <code>Secrets.props</code> (מקומי)<br/>

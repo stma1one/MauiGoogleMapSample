@@ -42,21 +42,21 @@
     מכיל את המפתח האמיתי.<br/>
     <strong>חסום ב-<code>.gitignore</code>!</strong>
   </div>
-  <div class="mvvm-arrow">→</div>
+  <div class="mvvm-arrow">↓</div>
   <div class="mvvm-layer mvvm-vm">
     <strong>2. קובץ הפרויקט (MSBuild)</strong><br/>
     <code>MauiGoogleMapSample.csproj</code><br/>
     טוען את <code>Secrets.props</code><br/>
     ומגדיר <code>AndroidManifestPlaceholders</code>
   </div>
-  <div class="mvvm-arrow">→</div>
+  <div class="mvvm-arrow">↓</div>
   <div class="mvvm-layer mvvm-view">
     <strong>3. המניפסט באנדרואיד</strong><br/>
     <code>AndroidManifest.xml</code><br/>
     מכיל רק משתנה:<br/>
     <code>${GoogleMapsApiKey}</code>
   </div>
-  <div class="mvvm-arrow">→</div>
+  <div class="mvvm-arrow">↓</div>
   <div class="mvvm-layer mvvm-plat">
     <strong>4. קובץ ה-APK במכשיר</strong><br/>
     בזמן Build, המשתנה<br/>
