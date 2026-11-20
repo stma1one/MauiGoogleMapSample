@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>CoffeeMap — Stage 4 UserLocationPage Mockup</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { margin: 0; padding: 24px; background: #eef2f6; display: flex; justify-content: center; }
+    .phone-frame { width: 390px; background: #111827; border-radius: 38px; padding: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.22); }
+    .screen { background: #f8fafc; border-radius: 26px; overflow: hidden; min-height: 760px; display: flex; flex-direction: column; }
+    .status-bar { background: #4e342e; color: #fff; padding: 8px 18px; font-size: 12px; display: flex; justify-content: space-between; direction: ltr; }
+    .app-bar { background: #5d4037; color: #fff; padding: 14px 18px; font-size: 16px; font-weight: 700; }
+    .content { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .btn { background: #2563eb; color: #fff; border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 700; text-align: center; }
+    .map-canvas { flex: 1; min-height: 450px; border-radius: 12px; border: 1px solid #cbd5e1; background: linear-gradient(135deg, #d9ead3 0%, #cfe2f3 50%, #e6f4ea 100%); position: relative; }
+    .user-dot { position: absolute; top: 205px; left: 165px; width: 22px; height: 22px; border-radius: 50%; background: #2563eb; border: 4px solid #fff; box-shadow: 0 0 0 12px rgba(37,99,235,0.22); }
+    .pin { position: absolute; background: #dc2626; color: #fff; padding: 4px 8px; border-radius: 14px; font-size: 11px; font-weight: 700; }
+    .info { background: #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #1e293b; display: flex; flex-direction: column; gap: 4px; }
+  </style>
+</head>
+<body>
+  <div class="phone-frame" data-guide-overview>
+    <div class="screen">
+      <div class="status-bar"><span>18:28</span><span>5G • 90%</span></div>
+      <div class="app-bar">CoffeeMap — שלב 4: מיקום GPS</div>
+      <div class="content">
+        <div class="btn" data-guide-block="locate-btn">📍 מצא את המיקום שלי (GPS)</div>
+        <div class="map-canvas" data-guide-block="gps-map">
+          <div class="user-dot"></div>
+          <div class="pin" style="top:165px; left:135px;">📍 קליית שנקין (0.02 ק"מ)</div>
+          <div class="pin" style="top:290px; left:155px;">📍 קפה רוטשילד 45</div>
+        </div>
+        <div class="info" data-guide-block="gps-info">
+          <div>מיקום נוכחי: 32.0694, 34.7721</div>
+          <div><strong>☕ התחנה הקרובה ביותר: קליית שנקין (במרחק 0.02 ק"מ)</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

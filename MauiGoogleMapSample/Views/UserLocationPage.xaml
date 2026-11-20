@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
+             xmlns:models="clr-namespace:MauiGoogleMapSample.Models"
+             xmlns:vm="clr-namespace:MauiGoogleMapSample.ViewModels"
+             x:Class="MauiGoogleMapSample.Views.UserLocationPage"
+             x:DataType="vm:UserLocationViewModel"
+             FlowDirection="RightToLeft"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8" Padding="12">
+
+        <!-- Locate User Action & Loading Indicator -->
+        <HorizontalStackLayout Grid.Row="0" Spacing="10" HorizontalOptions="Center">
+            <Button AutomationId="LocateMeButton"
+                    Text="📍 מצא את המיקום שלי (GPS)"
+                    Command="{Binding LocateMeCommand}" />
+            <ActivityIndicator AutomationId="LocationLoadingIndicator"
+                               IsRunning="{Binding IsLoading}"
+                               IsVisible="{Binding IsLoading}" />
+        </HorizontalStackLayout>
+
+        <!-- Map Showing User Location & Coffee Pins -->
+        <Border Grid.Row="1"
+                StrokeShape="RoundRectangle 12"
+                Stroke="{StaticResource Gray300}">
+            <maps:Map x:Name="GpsMapControl"
+                      AutomationId="GpsMapControl"
+                      IsShowingUser="{Binding IsShowingUser}"
+                      ItemsSource="{Binding Stations}"
+                      IsScrollEnabled="True"
+                      IsZoomEnabled="True">
+                <maps:Map.ItemTemplate>
+                    <DataTemplate x:DataType="models:CoffeeStation">
+                        <maps:Pin Location="{Binding Location}"
+                                  Label="{Binding Name}"
+                                  Address="{Binding Address}"
+                                  Type="Place" />
+                    </DataTemplate>
+                </maps:Map.ItemTemplate>
+            </maps:Map>
+        </Border>
+
+        <!-- GPS & Nearest Station Info -->
+        <Border Grid.Row="2"
+                StrokeShape="RoundRectangle 8"
+                Padding="12"
+                BackgroundColor="{StaticResource Gray100}">
+            <VerticalStackLayout Spacing="4">
+                <Label AutomationId="LocationStatusLabel"
+                       Text="{Binding LocationStatus}"
+                       FontSize="13" />
+                <Label AutomationId="NearestStationLabel"
+                       Text="{Binding NearestStationSummary}"
+                       FontSize="14"
+                       FontAttributes="Bold" />
+            </VerticalStackLayout>
+        </Border>
+
+    </Grid>
+</ContentPage>

@@ -48,3 +48,12 @@
 | `Constructor_LoadsAllStationsAndDisablesClearFilter` | אתחול `CoffeePinsViewModel` | 4 תחנות נטענות ו-`ClearFilterCommand` מושבת |
 | `FilterCommand_FiltersStationsAndClearFilterRestoresAll` | סינון וניקוי סינון | מסנן ל-1 ומנקה חזרה ל-4 |
 | `SelectStationByNameCommand_UpdatesSelectedStationAndBanner` | בחירת סיכה לפי שם | מעדכן `SelectedStation` ופס מידע |
+
+## שלב 4 (`stage/04-gps-and-user-location`)
+
+### 6. `UserLocationViewModelTests` (עם `FakeLocationService`)
+| שם הבדיקה | תרחיש נבדק | תוצאה צפויה |
+| :--- | :--- | :--- |
+| `ExecuteLocateMeAsync_WhenPermissionGranted_SetsShowingUserAndFindsNearestStation` | הרשאה אושרה ומיקום ליד שנקין | `IsShowingUser == true`, מוצא `"קליית שנקין"` ומפעיל `MoveToRegionRequested` |
+| `ExecuteLocateMeAsync_WhenPermissionDenied_DisablesShowingUserAndReportsError` | הרשאת מיקום נדחתה | `IsShowingUser == false`, הודעת שגיאה ידידותית |
+| `ExecuteLocateMeAsync_WhenServiceThrows_RecoversGracefullyAndResetsIsLoading` | חריגה מחיישן GPS | התאוששות מסודרת ו-`IsLoading == false` |

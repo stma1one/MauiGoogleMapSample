@@ -1,0 +1,20 @@
+{
+  "screen": "UserLocationPage",
+  "mockup": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Mockups\\UserLocationPage.html",
+  "overview": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\UserLocationPage-overview.png",
+  "blocks": [
+    {
+      "name": "locate-btn",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\UserLocationPage-block1-locate-btn.png"
+    },
+    {
+      "name": "gps-map",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\UserLocationPage-block2-gps-map.png"
+    },
+    {
+      "name": "gps-info",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\UserLocationPage-block3-gps-info.png"
+    }
+  ],
+  "android": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\UserLocationPage-android.png"
+}

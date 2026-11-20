@@ -42,3 +42,11 @@
 * **מטרת השלב:** הצגת תחנות קפה כסיכות `<maps:Pin>` באמצעות `ItemsSource` ו-`ItemTemplate`, סינון חי, וטיפול ב-`MarkerClicked` ו-`InfoWindowClicked` (עם `DisplayAlertAsync`).
 * **מסמכי PDF לתלמיד:** `MauiGoogleMapSample/Docs/03-Pins-And-Callouts.pdf` ו-`MauiGoogleMapSample/Docs/Assignments/03-Pins-And-Callouts-Assignment.pdf`.
 * **ראו פירוט ותצוגת מסך בפרק:** [שלב 3 — סיכות (`CoffeePinsPage`)](Guides/CoffeePinsPage-Guide.md)
+
+---
+
+## שלב 4: מיקום המשתמש (GPS), הרשאות בזמן ריצה וחישוב מרחקים (`stage/04-gps-and-user-location`)
+
+* **מטרת השלב:** בקשת `Permissions.LocationWhenInUse`, קריאת `Geolocation`, הצגת `IsShowingUser`, חישוב תחנת הקפה הקרובה ביותר, ובדיקות יחידה עם `FakeLocationService`.
+* **מסמכי PDF לתלמיד:** `MauiGoogleMapSample/Docs/04-GPS-And-User-Location.pdf` ו-`MauiGoogleMapSample/Docs/Assignments/04-GPS-And-User-Location-Assignment.pdf`.
+* **ראו פירוט ותצוגת מסך בפרק:** [שלב 4 — מיקום GPS (`UserLocationPage`)](Guides/UserLocationPage-Guide.md)

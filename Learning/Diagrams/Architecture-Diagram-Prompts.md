@@ -12,13 +12,14 @@
 ```mermaid
 flowchart TD
   AppShell(["AppShell (נקודת פתיחה וניווט)"])
+  AppShell -->|"Shell Tab / Flyout"| UserLocationPage
   AppShell -->|"Shell Tab / Flyout"| CoffeePinsPage
   AppShell -->|"Shell Tab / Flyout"| MapDisplayPage
   AppShell -->|"Shell Tab / Flyout"| MainPage
 ```
 
 ### פרומפט שמור ליצירת תרשים זרימת המסכים בעיצוב גרפי:
-> צור תרשים זרימת מסכים (Screen Flow Diagram) נקי וברור עבור אפליקציית .NET MAUI. מסך הפתיחה וההיררכיה הראשיים מנוהלים ב-`AppShell`, והמסכים בפרויקט הם: `CoffeePinsPage, MainPage, MapDisplayPage`. הצג חיצים ברורים למעברי הניווט (`Shell.Current.GoToAsync`) בין המסכים לפי מבנה ה-Mermaid שלעיל.
+> צור תרשים זרימת מסכים (Screen Flow Diagram) נקי וברור עבור אפליקציית .NET MAUI. מסך הפתיחה וההיררכיה הראשיים מנוהלים ב-`AppShell`, והמסכים בפרויקט הם: `CoffeePinsPage, MainPage, MapDisplayPage, UserLocationPage`. הצג חיצים ברורים למעברי הניווט (`Shell.Current.GoToAsync`) בין המסכים לפי מבנה ה-Mermaid שלעיל.
 
 ---
 
@@ -63,9 +64,17 @@ classDiagram
   class ICoffeeStationService {
     <<interface>>
   }
+  class ILocationService {
+    <<interface>>
+    +LocationFetchResult() record
+  }
   class IMapConfigurationValidator {
     <<interface>>
     +MapConfigCheckResult() record
+  }
+  class LocationService {
+    +GetCurrentLocationAsync() Task~LocationFetchResult~
+    +CalculateDistanceKm() double
   }
   class MapConfigurationValidator {
     +ValidateApiKey() MapConfigCheckResult
@@ -82,9 +91,15 @@ classDiagram
   }
   class SetupStatusViewModel {
   }
+  class UserLocationViewModel {
+    +ObservableCollection~CoffeeStation~ Stations
+    +ExecuteLocateMeAsync() Task
+  }
   class CoffeePinsPage {
   }
   class MapDisplayPage {
+  }
+  class UserLocationPage {
   }
   class ArchitectureSmokeTests {
     +TestHarness_WhenInitialized_PassesSanityCheck() void
@@ -122,10 +137,18 @@ classDiagram
     +ValidateKeyCommand_WhenValidKeyEntered_UpdatesIsConfiguredToTrue() void
     +ResetToPlaceholderCommand_RestoresPlaceholderAndInvalidState() void
   }
+  class UserLocationViewModelTests {
+    +GetCurrentLocationAsync() Task~LocationFetchResult~
+    +CalculateDistanceKm() double
+    +ExecuteLocateMeAsync_WhenPermissionGranted_SetsShowingUserAndFindsNearestStation() Task
+    +ExecuteLocateMeAsync_WhenPermissionDenied_DisablesShowingUserAndReportsError() Task
+    +ExecuteLocateMeAsync_WhenServiceThrows_RecoversGracefullyAndResetsIsLoading() Task
+  }
   ContentPage <|-- MainPage
   MainPage ..> SetupStatusViewModel : DI
   ICoffeeRegionService <|-- CoffeeRegionService
   ICoffeeStationService <|-- CoffeeStationService
+  ILocationService <|-- LocationService
   IMapConfigurationValidator <|-- MapConfigurationValidator
   INotifyPropertyChanged <|-- BaseViewModel
   BaseViewModel <|-- CoffeePinsViewModel
@@ -134,10 +157,15 @@ classDiagram
   MapDisplayViewModel ..> ICoffeeRegionService : DI
   BaseViewModel <|-- SetupStatusViewModel
   SetupStatusViewModel ..> IMapConfigurationValidator : DI
+  BaseViewModel <|-- UserLocationViewModel
+  UserLocationViewModel ..> ILocationService : DI
+  UserLocationViewModel ..> ICoffeeStationService : DI
   ContentPage <|-- CoffeePinsPage
   CoffeePinsPage ..> CoffeePinsViewModel : DI
   ContentPage <|-- MapDisplayPage
   MapDisplayPage ..> MapDisplayViewModel : DI
+  ContentPage <|-- UserLocationPage
+  UserLocationPage ..> UserLocationViewModel : DI
 ```
 
 ### פרומפט שמור ליצירת תרשים ה-UML בעיצוב גרפי:

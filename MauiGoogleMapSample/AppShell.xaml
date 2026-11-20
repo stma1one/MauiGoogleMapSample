@@ -10,12 +10,17 @@
 
     <TabBar>
         <ShellContent
+            Title="שלב 4: GPS"
+            ContentTemplate="{DataTemplate views:UserLocationPage}"
+            Route="UserLocationPage" />
+
+        <ShellContent
             Title="שלב 3: סיכות"
             ContentTemplate="{DataTemplate views:CoffeePinsPage}"
             Route="CoffeePinsPage" />
 
         <ShellContent
-            Title="שלב 2: תצוגת מפה"
+            Title="שלב 2: מפה"
             ContentTemplate="{DataTemplate views:MapDisplayPage}"
             Route="MapDisplayPage" />
 

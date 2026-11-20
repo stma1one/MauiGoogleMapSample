@@ -34,9 +34,17 @@ classDiagram
   class ICoffeeStationService {
     <<interface>>
   }
+  class ILocationService {
+    <<interface>>
+    +LocationFetchResult() record
+  }
   class IMapConfigurationValidator {
     <<interface>>
     +MapConfigCheckResult() record
+  }
+  class LocationService {
+    +GetCurrentLocationAsync() Task~LocationFetchResult~
+    +CalculateDistanceKm() double
   }
   class MapConfigurationValidator {
     +ValidateApiKey() MapConfigCheckResult
@@ -53,9 +61,15 @@ classDiagram
   }
   class SetupStatusViewModel {
   }
+  class UserLocationViewModel {
+    +ObservableCollection~CoffeeStation~ Stations
+    +ExecuteLocateMeAsync() Task
+  }
   class CoffeePinsPage {
   }
   class MapDisplayPage {
+  }
+  class UserLocationPage {
   }
   class ArchitectureSmokeTests {
     +TestHarness_WhenInitialized_PassesSanityCheck() void
@@ -93,10 +107,18 @@ classDiagram
     +ValidateKeyCommand_WhenValidKeyEntered_UpdatesIsConfiguredToTrue() void
     +ResetToPlaceholderCommand_RestoresPlaceholderAndInvalidState() void
   }
+  class UserLocationViewModelTests {
+    +GetCurrentLocationAsync() Task~LocationFetchResult~
+    +CalculateDistanceKm() double
+    +ExecuteLocateMeAsync_WhenPermissionGranted_SetsShowingUserAndFindsNearestStation() Task
+    +ExecuteLocateMeAsync_WhenPermissionDenied_DisablesShowingUserAndReportsError() Task
+    +ExecuteLocateMeAsync_WhenServiceThrows_RecoversGracefullyAndResetsIsLoading() Task
+  }
   ContentPage <|-- MainPage
   MainPage ..> SetupStatusViewModel : DI
   ICoffeeRegionService <|-- CoffeeRegionService
   ICoffeeStationService <|-- CoffeeStationService
+  ILocationService <|-- LocationService
   IMapConfigurationValidator <|-- MapConfigurationValidator
   INotifyPropertyChanged <|-- BaseViewModel
   BaseViewModel <|-- CoffeePinsViewModel
@@ -105,7 +127,12 @@ classDiagram
   MapDisplayViewModel ..> ICoffeeRegionService : DI
   BaseViewModel <|-- SetupStatusViewModel
   SetupStatusViewModel ..> IMapConfigurationValidator : DI
+  BaseViewModel <|-- UserLocationViewModel
+  UserLocationViewModel ..> ILocationService : DI
+  UserLocationViewModel ..> ICoffeeStationService : DI
   ContentPage <|-- CoffeePinsPage
   CoffeePinsPage ..> CoffeePinsViewModel : DI
   ContentPage <|-- MapDisplayPage
   MapDisplayPage ..> MapDisplayViewModel : DI
+  ContentPage <|-- UserLocationPage
+  UserLocationPage ..> UserLocationViewModel : DI
