@@ -20,7 +20,7 @@ if (Test-Path -LiteralPath $modeFile) {
 }
 
 if (-not $includeTests) {
-    Write-Host "[SKIP] includeTests=false in .agents/MAUI-Agent-Mode.json — unit tests are disabled (testManagementMode ignored)." -ForegroundColor Yellow
+    Write-Host "[SKIP] includeTests=false in .agents/MAUI-Agent-Mode.json - unit tests are disabled (testManagementMode ignored)." -ForegroundColor Yellow
     Write-Host "RESULT: PASS (TESTS DISABLED)" -ForegroundColor Green
     exit 0
 }

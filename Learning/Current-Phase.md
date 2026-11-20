@@ -1,26 +1,11 @@
 # Current Phase
 
 ```text
-Feature:
-Phase number:
-Phase title:
-Primary concept:
-Concepts needed now:
-Workflow stage:
-Baton owner:
-Student decisions so far:
-Open planning questions:
-Approved plan:
-Concept gate:
-Theory evidence:
-Applied coding evidence:
-Routine eligibility for agent-owned work:
-Ownership split:
-Practice offer:
-Test plan and coverage:
-Agent-owned changes:
-Student-owned tasks:
-Verification:
-Completion criteria:
-Status: PLANNING_WITH_STUDENT
+Feature: CoffeeMap - Stage 1: Setup, NuGet, Android Permissions & API Key Validation
+Phase number: 1
+Phase title: Setup & Permissions (Branch: stage/01-setup-and-permissions)
+Primary concept: Microsoft.Maui.Controls.Maps, UseMauiMaps(), AndroidManifest Permissions & Vanilla MVVM Validation
+Concepts needed now: AndroidManifest.xml, NuGet, DI, INotifyPropertyChanged, ICommand.CanExecute, xunit.v3
+Workflow stage: VERIFICATION_AUDITOR
+Baton owner: Agent (MAXIMIZE CODE GENERATED)
 ```

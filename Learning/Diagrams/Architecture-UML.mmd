@@ -1,0 +1,38 @@
+classDiagram
+  direction TB
+  class AppShell {
+  }
+  class MainPage {
+  }
+  class IMapConfigurationValidator {
+    <<interface>>
+    +MapConfigCheckResult() record
+  }
+  class MapConfigurationValidator {
+    +ValidateApiKey() MapConfigCheckResult
+  }
+  class BaseViewModel {
+  }
+  class SetupStatusViewModel {
+  }
+  class ArchitectureSmokeTests {
+    +TestHarness_WhenInitialized_PassesSanityCheck() void
+  }
+  class MapConfigurationValidatorTests {
+    +ValidateApiKey_WhenNullOrEmpty_ReturnsInvalid() void
+    +ValidateApiKey_WhenPlaceholder_ReturnsInvalidWithPlaceholderMessage() void
+    +ValidateApiKey_WhenTooShort_ReturnsInvalid() void
+    +ValidateApiKey_WhenValidLength_ReturnsValid() void
+  }
+  class SetupStatusViewModelTests {
+    +Constructor_InitializesWithPlaceholderAndInvalidStatus() void
+    +ValidateKeyCommand_WhenApiKeyEmpty_CannotExecute() void
+    +ValidateKeyCommand_WhenValidKeyEntered_UpdatesIsConfiguredToTrue() void
+    +ResetToPlaceholderCommand_RestoresPlaceholderAndInvalidState() void
+  }
+  ContentPage <|-- MainPage
+  MainPage ..> SetupStatusViewModel : DI
+  IMapConfigurationValidator <|-- MapConfigurationValidator
+  INotifyPropertyChanged <|-- BaseViewModel
+  BaseViewModel <|-- SetupStatusViewModel
+  SetupStatusViewModel ..> IMapConfigurationValidator : DI

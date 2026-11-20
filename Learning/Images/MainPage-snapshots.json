@@ -1,0 +1,16 @@
+{
+  "screen": "MainPage",
+  "mockup": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Mockups\\MainPage.html",
+  "overview": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\MainPage-overview.png",
+  "blocks": [
+    {
+      "name": "checklist",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\MainPage-block1-checklist.png"
+    },
+    {
+      "name": "validator",
+      "path": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\MainPage-block2-validator.png"
+    }
+  ],
+  "android": "C:\\Users\\Owner\\source\\repos\\MauiGoogleMapSample\\Learning\\Images\\MainPage-android.png"
+}

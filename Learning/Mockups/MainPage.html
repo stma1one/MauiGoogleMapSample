@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>CoffeeMap — Stage 1 Mockup</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { margin: 0; padding: 24px; background: #eef2f6; display: flex; justify-content: center; }
+    .phone-frame {
+      width: 390px;
+      background: #111827;
+      border-radius: 38px;
+      padding: 14px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.22);
+    }
+    .screen {
+      background: #f8fafc;
+      border-radius: 26px;
+      overflow: hidden;
+      min-height: 760px;
+      display: flex;
+      flex-direction: column;
+    }
+    .status-bar {
+      background: #4e342e;
+      color: #fff;
+      padding: 8px 18px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      direction: ltr;
+    }
+    .app-bar {
+      background: #5d4037;
+      color: #fff;
+      padding: 14px 18px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .content {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .title { font-size: 22px; font-weight: 800; color: #3e2723; margin: 0; }
+    .subtitle { font-size: 13px; color: #64748b; margin: 0; }
+    .card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .card-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 0; }
+    .check-item { font-size: 13px; color: #334155; }
+    .entry {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #94a3b8;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      direction: ltr;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    .btn-row { display: flex; gap: 8px; }
+    .btn-primary {
+      flex: 1;
+      background: #6d4c41;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      text-align: center;
+    }
+    .btn-secondary {
+      flex: 1;
+      background: #64748b;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      text-align: center;
+    }
+    .status-box {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .status-title { font-size: 14px; font-weight: 700; color: #92400e; margin-bottom: 4px; }
+    .status-details { font-size: 12px; color: #78350f; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <div class="phone-frame" data-guide-overview>
+    <div class="screen">
+      <div class="status-bar">
+        <span>12:55</span>
+        <span>5G • 94%</span>
+      </div>
+      <div class="app-bar">CoffeeMap — שלב 1: התקנה והרשאות</div>
+      <div class="content">
+        <h1 class="title">☕ CoffeeMap — מפת תחנות קפה</h1>
+        <p class="subtitle">שלב 1: הגדרת NuGet, אתחול UseMauiMaps() והרשאות Android</p>
+
+        <div class="card" data-guide-block="checklist">
+          <div class="card-title">רשימת בדיקה לתשתית המפות:</div>
+          <div class="check-item">✅ חבילת Microsoft.Maui.Controls.Maps מותקנת</div>
+          <div class="check-item">✅ קריאה ל-UseMauiMaps() ב-MauiProgram.cs</div>
+          <div class="check-item">✅ הרשאות ACCESS_FINE_LOCATION ו-ACCESS_COARSE_LOCATION ב-AndroidManifest.xml</div>
+          <div class="check-item">🔑 הגדרת com.google.android.geo.API_KEY (Placeholder)</div>
+        </div>
+
+        <div class="card" data-guide-block="validator">
+          <div class="card-title">בדיקת תקינות Google Maps API Key:</div>
+          <div class="entry">YOUR_GOOGLE_MAPS_API_KEY_HERE</div>
+          <div class="btn-row">
+            <div class="btn-primary">בדוק תקינות מפתח</div>
+            <div class="btn-secondary">איפוס ל-Placeholder</div>
+          </div>
+          <div class="status-box">
+            <div class="status-title">מוגדר מפתח Placeholder</div>
+            <div class="status-details">הפרויקט משתמש כרגע במפתח הדגמה (Placeholder). כדי להציג מפת אמת באנדרואיד, יש להחליפו במפתח מ-Google Cloud Console.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

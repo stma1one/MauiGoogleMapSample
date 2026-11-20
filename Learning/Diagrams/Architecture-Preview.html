@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>תרשימי ארכיטקטורה — תיק פרויקט .NET MAUI</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f8fafc; color: #0f172a; margin: 24px; }
+    .card { background: white; border: 2px solid #cbd5e1; border-radius: 14px; padding: 22px; margin-bottom: 24px; box-shadow: 0 4px 10px rgba(15,23,42,0.05); }
+    h1, h2 { color: #0369a1; margin-top: 0; }
+    .diagram-visual { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 14px 0; }
+    .chips-row { margin-bottom: 14px; font-size: 13px; color: #334155; }
+    .screen-chip { display: inline-block; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; border-radius: 999px; padding: 3px 12px; margin: 3px 4px; font-weight: 600; font-size: 12px; }
+    .flow-grid { display: flex; flex-direction: column; gap: 10px; }
+    .flow-edge { display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 14px; }
+    .flow-node { background: #0284c7; color: white; font-weight: 700; padding: 6px 14px; border-radius: 8px; font-size: 13px; }
+    .flow-target { background: #0f172a; }
+    .flow-arrow { display: flex; flex-direction: column; align-items: center; color: #475569; font-weight: 600; font-size: 12px; min-width: 110px; }
+    .flow-label { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; border-radius: 6px; padding: 1px 8px; font-size: 11px; margin-bottom: 2px; }
+    .uml-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+    .uml-class-box { border: 2px solid #0284c7; border-radius: 10px; background: #ffffff; overflow: hidden; }
+    .uml-header { background: #e0f2fe; padding: 8px 12px; border-bottom: 2px solid #0284c7; }
+    .uml-layer { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #0369a1; background: #bae6fd; padding: 1px 6px; border-radius: 4px; }
+    .uml-title { font-size: 14px; font-weight: 800; color: #0c4a6e; margin-top: 4px; }
+    .uml-section { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; font-family: Consolas, monospace; font-size: 11.5px; color: #1e293b; }
+    .uml-section:last-child { border-bottom: none; }
+    .uml-member { margin: 3px 0; }
+    .uml-empty { color: #94a3b8; font-style: italic; font-size: 11px; }
+    .uml-relations { margin-top: 14px; padding-top: 10px; border-top: 1px dashed #cbd5e1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; }
+    .rel-badge { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 10px; color: #334155; }
+    pre { direction: ltr; text-align: left; background: #f1f5f9; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; color: #334155; }
+  </style>
+</head>
+<body>
+  <main data-guide-overview>
+    <section class="card" data-guide-block="screen-flow">
+      <h2>1. תרשים זרימת מסכים (Screen Flow Diagram)</h2>
+      <div class="diagram-visual" dir="ltr"><div class="chips-row"><strong>Screens (1):</strong> <span class="screen-chip">MainPage</span></div><div class="flow-grid"><div class="flow-edge"><span class="flow-node">AppShell</span><span class="flow-arrow"><span class="flow-label">Shell Tab / Flyout</span>&#8594;</span><span class="flow-node flow-target">MainPage</span></div></div></div>
+      <pre>flowchart TD
+  AppShell([&quot;AppShell (נקודת פתיחה וניווט)&quot;])
+  AppShell --&gt;|&quot;Shell Tab / Flyout&quot;| MainPage
+</pre>
+    </section>
+    <section class="card" data-guide-block="uml-diagram">
+      <h2>2. תרשים מחלקות (UML Class Diagram)</h2>
+      <div class="diagram-visual" dir="ltr"><div class="uml-grid"><div class="uml-class-box"><div class="uml-header"><span class="uml-layer">Other</span><div class="uml-title">AppShell</div></div><div class="uml-section"><div class="uml-empty">(no public properties)</div></div><div class="uml-section"><div class="uml-empty">(no public methods)</div></div></div><div class="uml-class-box"><div class="uml-header"><span class="uml-layer">Other</span><div class="uml-title">MainPage</div></div><div class="uml-section"><div class="uml-empty">(no public properties)</div></div><div class="uml-section"><div class="uml-empty">(no public methods)</div></div></div><div class="uml-class-box"><div class="uml-header"><span class="uml-layer">Services</span><div class="uml-title">&lt;&lt;interface&gt;&gt; IMapConfigurationValidator</div></div><div class="uml-section"><div class="uml-empty">(no public properties)</div></div><div class="uml-section"><div class="uml-member">+ <strong>MapConfigCheckResult()</strong> : record</div></div></div><div class="uml-class-box"><div class="uml-header"><span class="uml-layer">Services</span><div class="uml-title">MapConfigurationValidator</div></div><div class="uml-section"><div class="uml-empty">(no public properties)</div></div><div class="uml-section"><div class="uml-member">+ <strong>ValidateApiKey()</strong> : MapConfigCheckResult</div></div></div><div class="uml-class-box"><div class="uml-header"><span class="uml-layer">ViewModels</span><div class="uml-title">BaseViewModel</div></div><div class="uml-section"><div class="uml-empty">(no public properties)</div></div><div class="uml-section"><div class="uml-empty">(no public methods)</div></div></div><div class="uml-class-box"><div class="uml-header"><span class="uml-layer">ViewModels</span><div class="uml-title">SetupStatusViewModel</div></div><div class="uml-section"><div class="uml-empty">(no public properties)</div></div><div class="uml-section"><div class="uml-empty">(no public methods)</div></div></div><div class="uml-class-box"><div class="uml-header"><span class="uml-layer">Other</span><div class="uml-title">ArchitectureSmokeTests</div></div><div class="uml-section"><div class="uml-empty">(no public properties)</div></div><div class="uml-section"><div class="uml-member">+ <strong>TestHarness_WhenInitialized_PassesSanityCheck()</strong> : void</div></div></div><div class="uml-class-box"><div class="uml-header"><span class="uml-layer">Other</span><div class="uml-title">MapConfigurationValidatorTests</div></div><div class="uml-section"><div class="uml-empty">(no public properties)</div></div><div class="uml-section"><div class="uml-member">+ <strong>ValidateApiKey_WhenNullOrEmpty_ReturnsInvalid()</strong> : void</div><div class="uml-member">+ <strong>ValidateApiKey_WhenPlaceholder_ReturnsInvalidWithPlaceholderMessage()</strong> : void</div><div class="uml-member">+ <strong>ValidateApiKey_WhenTooShort_ReturnsInvalid()</strong> : void</div><div class="uml-member">+ <strong>ValidateApiKey_WhenValidLength_ReturnsValid()</strong> : void</div></div></div><div class="uml-class-box"><div class="uml-header"><span class="uml-layer">Other</span><div class="uml-title">SetupStatusViewModelTests</div></div><div class="uml-section"><div class="uml-empty">(no public properties)</div></div><div class="uml-section"><div class="uml-member">+ <strong>Constructor_InitializesWithPlaceholderAndInvalidStatus()</strong> : void</div><div class="uml-member">+ <strong>ValidateKeyCommand_WhenApiKeyEmpty_CannotExecute()</strong> : void</div><div class="uml-member">+ <strong>ValidateKeyCommand_WhenValidKeyEntered_UpdatesIsConfiguredToTrue()</strong> : void</div><div class="uml-member">+ <strong>ResetToPlaceholderCommand_RestoresPlaceholderAndInvalidState()</strong> : void</div></div></div></div><div class="uml-relations"><strong>Relationships &amp; DI Wiring:</strong> <span class="rel-badge">AppShell &#9651;&#8212; inherits/implements <strong>Shell</strong></span><span class="rel-badge">MainPage &#9651;&#8212; inherits/implements <strong>ContentPage</strong></span><span class="rel-badge">MainPage &#8230;&gt; injects (DI) <strong>SetupStatusViewModel</strong></span><span class="rel-badge">MapConfigurationValidator &#9651;&#8212; inherits/implements <strong>IMapConfigurationValidator</strong></span><span class="rel-badge">BaseViewModel &#9651;&#8212; inherits/implements <strong>INotifyPropertyChanged</strong></span><span class="rel-badge">SetupStatusViewModel &#9651;&#8212; inherits/implements <strong>BaseViewModel</strong></span><span class="rel-badge">SetupStatusViewModel &#8230;&gt; injects (DI) <strong>IMapConfigurationValidator</strong></span></div></div>
+      <pre>classDiagram
+  direction TB
+  class AppShell {
+  }
+  class MainPage {
+  }
+  class IMapConfigurationValidator {
+    &lt;&lt;interface&gt;&gt;
+    +MapConfigCheckResult() record
+  }
+  class MapConfigurationValidator {
+    +ValidateApiKey() MapConfigCheckResult
+  }
+  class BaseViewModel {
+  }
+  class SetupStatusViewModel {
+  }
+  class ArchitectureSmokeTests {
+    +TestHarness_WhenInitialized_PassesSanityCheck() void
+  }
+  class MapConfigurationValidatorTests {
+    +ValidateApiKey_WhenNullOrEmpty_ReturnsInvalid() void
+    +ValidateApiKey_WhenPlaceholder_ReturnsInvalidWithPlaceholderMessage() void
+    +ValidateApiKey_WhenTooShort_ReturnsInvalid() void
+    +ValidateApiKey_WhenValidLength_ReturnsValid() void
+  }
+  class SetupStatusViewModelTests {
+    +Constructor_InitializesWithPlaceholderAndInvalidStatus() void
+    +ValidateKeyCommand_WhenApiKeyEmpty_CannotExecute() void
+    +ValidateKeyCommand_WhenValidKeyEntered_UpdatesIsConfiguredToTrue() void
+    +ResetToPlaceholderCommand_RestoresPlaceholderAndInvalidState() void
+  }
+  ContentPage &lt;|-- MainPage
+  MainPage ..&gt; SetupStatusViewModel : DI
+  IMapConfigurationValidator &lt;|-- MapConfigurationValidator
+  INotifyPropertyChanged &lt;|-- BaseViewModel
+  BaseViewModel &lt;|-- SetupStatusViewModel
+  SetupStatusViewModel ..&gt; IMapConfigurationValidator : DI
+</pre>
+    </section>
+  </main>
+</body>
+</html>
