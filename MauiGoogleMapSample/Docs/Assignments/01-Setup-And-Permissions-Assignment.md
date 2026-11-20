@@ -15,7 +15,7 @@
 
 1. פתחו את הקובץ `MauiGoogleMapSample/Platforms/Android/AndroidManifest.xml`.
 2. אתרו את 4 שורות ה-`<uses-permission>` ואת תגית ה-`<meta-data>` של `com.google.android.geo.API_KEY`.
-3. **שאלת בדיקה (כתבו לעצמכם במחברת/ב-`Learning/MAUI-Learning-Book.md`):**
+3. **שאלת בדיקה (ענו בקצרה במחברת או בקובץ הערות משלכם):**
    * מה ההבדל בין `ACCESS_COARSE_LOCATION` לבין `ACCESS_FINE_LOCATION`?
    * מדוע אסור להעלות מפתח API אמיתי ל-GitHub ציבורי?
 
@@ -40,6 +40,8 @@
 
 ## חלק ג': הוספת בדיקת יחידה ב-`xunit.v3`
 
+> **חדשים בעבודה עם בדיקות?** לפני שמתחילים חלק זה, קראו את המדריך הקצר [`00-Working-With-Unit-Tests.pdf`](../00-Working-With-Unit-Tests.pdf) שמסביר איך בנויות בדיקות, איך מריצים אותן ב-Visual Studio ואיך קוראים את התוצאות.
+
 1. פתחו את הקובץ `MauiGoogleMapSample.Tests/MapConfigurationValidatorTests.cs`.
 2. הוסיפו בדיקה חדשה בשם:
    `ValidateApiKey_WhenMissingAIzaPrefix_ReturnsInvalid`
@@ -47,10 +49,13 @@
    * **Arrange:** צרו מופע של `MapConfigurationValidator`.
    * **Act:** העבירו מחרוזת ארוכה מ-20 תווים שלא מתחילה ב-`AIza` (למשל `"ZZZZ12345678901234567890"`).
    * **Assert:** ודאו ש-`result.IsValid` הוא `false` וש-`result.StatusTitle` מכיל `"קידומת"`.
-4. הריצו בטרמינל:
-   ```powershell
-   .\Scripts\Validate-Tests.ps1
-   ```
+4. בצעו **Build** והריצו את כל הבדיקות כדי לוודא שהבדיקה החדשה עוברת:
+   * **ב-Visual Studio:** `Build -> Build Solution`, ולאחר מכן `Test -> Test Explorer -> Run All Tests` — ודאו שכל הבדיקות ירוקות (`Passed`).
+   * **או בטרמינל:**
+     ```powershell
+     dotnet build
+     dotnet test
+     ```
    וודאו שכל הבדיקות עוברות (`Failed: 0`).
 
 ---

@@ -110,7 +110,7 @@ builder.Services.AddTransient<MainPage>();
 * **Service (`Services/MapConfigurationValidator.cs`)**: בודק האם מפתח API תקין (לא ריק, לא Placeholder, ובאורך מספק).
 * **ViewModel (`ViewModels/SetupStatusViewModel.cs`)**: מממש `INotifyPropertyChanged` ו-`ICommand` (כולל `CanExecute` שמשבית את הכפתור כשהשדה ריק) ומציג למשתמש סטטוס ברור.
 * **View (`MainPage.xaml`)**: דף XAML בעברית (`FlowDirection="RightToLeft"`) עם Compiled Bindings (`x:DataType="vm:SetupStatusViewModel"`).
-* **Unit Tests (`MauiGoogleMapSample.Tests/`)**: בדיקות אוטומטיות ב-`xunit.v3` המאמתות את `MapConfigurationValidator` ואת `SetupStatusViewModel` ללא צורך באימולטור.
+* **Unit Tests (`MauiGoogleMapSample.Tests/`)**: בדיקות אוטומטיות ב-`xunit.v3` המאמתות את `MapConfigurationValidator` ואת `SetupStatusViewModel` ללא צורך באימולטור. להסבר מלא על הרצת בדיקות ב-Visual Studio וב-`dotnet test`, ראו את המדריך [`00-Working-With-Unit-Tests.pdf`](00-Working-With-Unit-Tests.pdf).
 
 ---
 
