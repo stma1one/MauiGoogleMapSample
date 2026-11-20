@@ -3,7 +3,7 @@
 > **פרויקט:** CoffeeMap — מפת תחנות קפה ב-.NET MAUI  
 > **ענף Git (Branch):** `stage/01-setup-and-permissions`  
 > **קהל יעד:** תלמידים מתחילים בפיתוח אפליקציות מובייל (.NET MAUI)  
-> **מקרא צבעים בקוד:** שורות המודגשות ב**רקע ירוק וצהוב** הן השורות המדויקות שעליכם **להוסיף** לפרויקט.
+> **מקרא צבעים בקוד:** שורות המודגשות ב**רקע ירוק וטקסט צהוב** הן השורות המדויקות שעליכם **להוסיף** לפרויקט.
 
 ---
 
@@ -14,8 +14,8 @@
 בשלב הזה נלמד וניישם 4 אבני יסוד:
 1. **התקנת חבילת NuGet** — הוספת `Microsoft.Maui.Controls.Maps` לפרויקט (ב-Visual Studio 2026 או ב-JetBrains Rider ב-Mac).
 2. **רישום פקד המפה באתחול** — קריאה ל-`.UseMauiMaps()` בתוך `MauiProgram.cs`.
-3. **מנגנון ההרשאות ב-Android (`AndroidManifest.xml`)** — איך מערכת ההפעלה מגנה על פרטיות המשתמש ומה בדיוק אנחנו מצהירים.
-4. **מפתח Google Maps API Key ואבטחת מידע (`SecureStorage`)** — למה אסור לשמור מפתחות בקוד המקור, ואיך מאמתים ושומרים מפתח באחסון המוצפן של המכשיר.
+3. **מנגנון ההרשאות והגדרת ה-API Key ב-Android (`AndroidManifest.xml`)** — איך מערכת ההפעלה מגנה על פרטיות המשתמש ואיפה בדיוק מציבים את המפתח.
+4. **אבטחת מידע, `SecureStorage` וארכיטקטורת MVVM** — איך מגנים על המפתח ב-GitHub, איפה כותבים את הקוד של `SecureStorage`, ואיך בנויות השכבות.
 
 ---
 
@@ -29,7 +29,7 @@
 2. בחרו בתפריט: **`Manage NuGet Packages...`**.
 3. בחלונית שנפתחה, עברו ללשונית **`Browse`** (חיפוש).
 4. הקלידו בשורת החיפוש: `Microsoft.Maui.Controls.Maps`.
-5. בחרו את החבילה הרשמית של **Microsoft** (ודאו שהמפיץ הוא Microsoft), בחרו בגרסה היציבה התואמת לגרסת ה-.NET MAUI שלכם, ולחצו **`Install`**.
+5. בחרו את החבילה הרשמית של **Microsoft**, בחרו בגרסה היציבה התואמת לגרסת ה-.NET MAUI שלכם, ולחצו **`Install`**.
 6. אשרו את חלון הרישיון (**Accept**) והמתינו לסיום ההתקנה.
 
 ### התקנה ב-JetBrains Rider (macOS) — צעד אחר צעד:
@@ -39,7 +39,6 @@
 4. בצד ימין של החלונית, ודאו שהפרויקט **`MauiGoogleMapSample`** מסומן (ולא פרויקט ה-`Tests`), בחרו את הגרסה היציבה התואמת ל-.NET 10, ולחצו על כפתור **`+` (Install)**.
 
 ### מה משתנה בקובץ `MauiGoogleMapSample.csproj` לאחר ההתקנה?
-לאחר ההתקנה תתווסף שורת ה-`<PackageReference>` הבאה (מומלץ להשתמש ב-`Version="$(MauiVersion)"` כדי שתתאים תמיד לגרסת `Microsoft.Maui.Controls`):
 
 ```xml
 <ItemGroup>
@@ -54,8 +53,7 @@
 ## 3. אתחול המפות ורישום שכבות ב-`MauiProgram.cs`
 
 הקובץ `MauiProgram.cs` הוא "חדר הבקרה" של האפליקציה — הוא רץ ראשון בעת ההפעלה ובונה את כל השירותים והפקדים.  
-כדי שפקד ה-`Map` יעבוד, **חובה** לשרשר את **`.UseMauiMaps()`** ל-`MauiAppBuilder`.
-
+כדי שפקד ה-`Map` יעבוד, **חובה** לשרשר את **`.UseMauiMaps()`** ל-`MauiAppBuilder`.  
 בנוסף, אנו משתמשים בשיטת **Fluent Builder Extension Methods** (`RegisterServices`, `RegisterViewModels`, `RegisterViews`) כדי לשמור על `CreateMauiApp()` נקי ומאורגן:
 
 ```csharp
@@ -76,7 +74,7 @@ builder
 > **שימו לב — הבהרה חשובה למתחילים!**  
 > בקטע הקוד למטה מופיעים שירותים כמו `IMapConfigurationValidator`, `MapConfigurationValidator`, `ISecureKeyStorageService`, `SecureKeyStorageService`, ו-`SetupStatusViewModel`.  
 > **אלו אינם שירותים מובנים של .NET MAUI או של Google!**  
-> אלו מחלקות **שאנחנו יצרנו בעצמנו** בתוך הפרויקט הזה (בתיקיות `Services/` ו-`ViewModels/`) כדי להדגים ארכיטקטורת MVVM נקייה, אימות מפתח ושמירה מוצפנת.  
+> אלו מחלקות **שאנחנו יצרנו בעצמנו** בתוך הפרויקט הזה (בתיקיות `Services/` ו-`ViewModels/`).  
 > אם תפתחו פרויקט MAUI חדש משלכם — **השורה היחידה שמגיעה מ-.NET MAUI להפעלת מפות היא `.UseMauiMaps()`**, ובתוך `RegisterServices` / `RegisterViewModels` / `RegisterViews` תרשמו אך ורק את המחלקות שאתם תכתבו בפרויקט שלכם!
 
 | רכיב ב-`MauiProgram.cs` | מאיפה הוא מגיע? | תפקיד |
@@ -111,12 +109,12 @@ builder
 
 ## 4. מנגנון ההרשאות באנדרואיד — מה מנהלים ואיפה?
 
-מערכת ההפעלה **Android** בנויה סביב אבטחה ופרטיות. אפליקציה **אינה יכולה** להשתמש בחיישני המכשיר (כמו GPS, מצלמה או אינטרנט) ללא הצהרה מפורשת בקובץ:
+מערכת ההפעלה **Android** בנויה סביב אבטחה ופרטיות. אפליקציה **אינה יכולה** להשתמש בחיישני המכשיר (כמו GPS או אינטרנט) ללא הצהרה מפורשת בקובץ:
 `MauiGoogleMapSample/Platforms/Android/AndroidManifest.xml`
 
 הקובץ `AndroidManifest.xml` הוא **"תעודת הזהות"** של האפליקציה מול מערכת ההפעלה וחנות Google Play.
 
-### אילו הרשאות הוספנו ומה תפקיד כל אחת?
+### אילו הרשאות יש להוסיף?
 
 | הרשאה (`uses-permission`) | רמת דיוק / תפקיד | למה אפליקציית CoffeeMap צריכה אותה? |
 | :--- | :--- | :--- |
@@ -124,6 +122,12 @@ builder
 | `android.permission.ACCESS_NETWORK_STATE` | בדיקת מצב חיבור רשת | לדעת אם יש אינטרנט זמין לפני טעינת מפה. |
 | `android.permission.ACCESS_COARSE_LOCATION` | מיקום משוער (רמת שכונה/רחוב, Wi-Fi/סלולר) | הצגת אזור כללי של המשתמש תוך חיסכון בסוללה. |
 | `android.permission.ACCESS_FINE_LOCATION` | מיקום מדויק (GPS לווייני, רמת מטרים) | איתור מדויק של תחנת הקפה הקרובה ביותר למשתמש. |
+
+<div class="alert-important">
+<strong>🔑 חובה לשים לב — תגית <code>com.google.android.geo.API_KEY</code>!</strong><br/>
+מלבד ההרשאות, <strong>בתוך תגית <code>&lt;application&gt;...&lt;/application&gt;</code></strong> בקובץ <code>AndroidManifest.xml</code> יש להוסיף תגית <code>&lt;meta-data&gt;</code> עם השם המדויק <strong><code>com.google.android.geo.API_KEY</code></strong>.<br/>
+<strong>זהו המקום המדויק שבו יש להציב את מפתח ה-Google Maps API שלכם</strong> (במקום הערך <code>YOUR_GOOGLE_MAPS_API_KEY_HERE</code>). ללא שורה זו, המפה באנדרואיד תוצג ריקה/אפורה או תיכשל בטעינה!
+</div>
 
 ### השורות שיש להוסיף ב-`Platforms/Android/AndroidManifest.xml`:
 
@@ -144,7 +148,7 @@ builder
 
 ---
 
-## 5. הגדרת Google Maps API Key ואבטחת מידע
+## 5. הנפקת Google Maps API Key והגנה על המפתח ב-GitHub
 
 ### איך מנפיקים מפתח אמיתי ב-Google Cloud Console?
 המדריך הרשמי של Google בעברית: [הגדרת מפתח API ל-Maps SDK for Android](https://developers.google.com/maps/documentation/android-sdk/get-api-key?hl=he)
@@ -152,45 +156,135 @@ builder
 1. היכנסו ל-[Google Cloud Console](https://console.cloud.google.com/) עם חשבון Google.
 2. צרו פרויקט חדש בשם `CoffeeMap-MAUI`.
 3. בתפריט הצד עברו ל-**APIs & Services -> Library**, חפשו **Maps SDK for Android** ולחצו **Enable**.
-4. עברו ל-**APIs & Services -> Credentials**, לחצו **+ CREATE CREDENTIALS -> API key**.
-5. העתיקו את המפתח שנוצר (מתחיל ב-`AIza...`).
-6. **כלל אבטחה קריטי — סכנת חשיפת API Key בקוד המקור:**
-   * **לעולם אל תשמרו מפתח API אמיתי בתוך קוד C# (Hardcoded) ואל תעלו אותו ל-GitHub!**
-   * בוטים אוטומטיים סורקים את GitHub מסביב לשעון ומאתרים מפתחות Google (`AIza...`) תוך שניות. חשיפת מפתח עלולה לגרום לשימוש זדוני במכסת ה-API שלכם, לחיובים כספיים בלתי צפויים בחשבון Google Cloud, ולחסימת האפליקציה.
-   * בנוסף, מומלץ להגביל את המפתח ב-Google Cloud Console לפי **Package Name** ו-**SHA-1** של אפליקציית האנדרואיד שלכם.
+4. עברו ל-**APIs & Services -> Credentials**, לחצו **+ CREATE CREDENTIALS -> API key**, והעתיקו את המפתח (מתחיל ב-`AIza...`).
+
+<div class="alert-security">
+<strong>🚨 סכנת חשיפת API Key ב-GitHub — למה אסור להעלות מפתח אמיתי?</strong><br/>
+בוטים אוטומטיים סורקים את GitHub מסביב לשעון ומאתרים מפתחות Google (<code>AIza...</code>) תוך שניות. חשיפת מפתח עלולה לגרום לניצול המכסה שלכם, לחיובים כספיים בלתי צפויים בחשבון Google Cloud ולחסימת האפליקציה. בנוסף, תמיד הגבילו את המפתח ב-Google Cloud לפי <strong>Package Name</strong> ו-<strong>SHA-1</strong> של האפליקציה.
+</div>
+
+### שאלות נפוצות של תלמידים:
+
+#### 1. האם אפשר להעביר ל-`AndroidManifest.xml` את המפתח מתוך `SecureStorage`?
+**לא.** קובץ `AndroidManifest.xml` נארז באופן סטטי לתוך קובץ ה-APK **בזמן הבנייה (Compile Time)**, ומנוע Google Maps של Android קורא ממנו את `com.google.android.geo.API_KEY` בזמן עליית האפליקציה — עוד לפני שקוד ה-C# של `SecureStorage` בכלל רץ.
+
+#### 2. אז איך מגנים על המפתח כשמעלים ל-GitHub — האם צריך למחוק אותו בכל פעם לפני `git push`?
+**לא חייבים למחוק ידנית בכל פעם!** יש שתי דרכים לעבוד בצורה בטוחה:
+* **הדרך הפשוטה לכיתה (הגנה ב-Google Cloud + אי-שמירה ב-Commit):** משאירים את `AndroidManifest.xml` עם Placeholder ב-Git, וכאשר מדביקים מפתח אמיתי לבדיקה מקומית — לא מסמנים את `AndroidManifest.xml` ב-`git commit`, ומוודאים שהמפתח מוגבל ב-Google Cloud Console לפי `Package Name` ו-`SHA-1` (כך גם אם מישהו יראה אותו, הוא לא יעבוד באפליקציה אחרת).
+* **הדרך המקצועית (אוטומטית עם `.gitignore`):** יוצרים קובץ מקומי בשם `Secrets.props` ומוסיפים אותו ל-`.gitignore` (כך שלעולם לא יעלה ל-GitHub), ומזריקים ממנו את המפתח בזמן בנייה באמצעות MSBuild (`ManifestPlaceholders`). כך הקוד ב-GitHub נשאר נקי לתמיד בלי למחוק כלום!
 
 ---
 
-## 5.1 שמירת ה-API Key באחסון המוצפן (`SecureStorage`) ושליפתו למסכים
+## 5.1 שמירת מפתח ב-`SecureStorage` המוצפן — באיזו מחלקה כותבים מה?
 
-ב-.NET MAUI קיים שירות מובנה בשם **`SecureStorage`** ששומר זוגות מפתח-ערך באופן **מוצפן על המכשיר** (באמצעות **Android KeyStore** באנדרואיד ו-**Keychain** ב-iOS).
+עבור מפתחות שמשמשים אותנו **בזמן ריצה** (כמו קריאות ל-Google Places / Directions / Geocoding REST API או ל-Gemini AI), שומרים את המפתח באחסון המוצפן של המכשיר (**`SecureStorage`** — Android KeyStore / iOS Keychain).
 
-כך אנו מיישמים זאת בפרויקט בצורה נקייה ובטוחה (`Services/SecureKeyStorageService.cs`):
+**באיזו מחלקה רושמים כל חלק של הקוד?**
+
+| פעולה | קובץ ומחלקה מדויקת בפרויקט | תפקיד |
+| :--- | :--- | :--- |
+| **שמירה / קריאה / מחיקה ב-`SecureStorage`** | `Services/SecureKeyStorageService.cs` (ממשק: `ISecureKeyStorageService`) | שכבת השירות היחידה שמדברת עם `SecureStorage.Default`. כך שאר הקוד נשאר נקי וניתן לבדיקה ב-Unit Tests! |
+| **שמירת המפתח שהמשתמש הזין במסך** | `ViewModels/SetupStatusViewModel.cs` (`ExecuteSaveKeyAsync`, `LoadSavedKeyAsync`) | מקבל את `ISecureKeyStorageService` בבנאי (DI), שומר את המפתח וטוען אותו ב-`MainPage.OnAppearing()`. |
+| **שליפת המפתח במסך אחר** | `ViewModels/MapDisplayViewModel.cs` (`LoadStoredKeyStatusAsync`) | מקבל את אותו `ISecureKeyStorageService` ב-DI ושולף את המפתח המוצפן (ומציג אותו מוסתר: `AIza••••9999`). |
+
+קטע הקוד המלא בתוך **`Services/SecureKeyStorageService.cs`**:
 
 ```csharp
-// שמירה מוצפנת על המכשיר (במסך ההגדרות - שלב 1)
-+ await SecureStorage.Default.SetAsync("coffeemap_google_maps_api_key", apiKey.Trim());
+using Microsoft.Maui.Storage;
 
-// שליפה מכל מסך אחר באפליקציה (למשל בשלב 2 או בקריאות REST)
-+ string? savedKey = await SecureStorage.Default.GetAsync("coffeemap_google_maps_api_key");
+namespace MauiGoogleMapSample.Services;
 
-// מחיקה מהאחסון המוצפן
-+ SecureStorage.Default.Remove("coffeemap_google_maps_api_key");
+public class SecureKeyStorageService : ISecureKeyStorageService
+{
+    private const string GoogleMapsApiKeyStorageKey = "coffeemap_google_maps_api_key";
+
+    public async Task SaveApiKeyAsync(string apiKey)
+    {
++       await SecureStorage.Default.SetAsync(GoogleMapsApiKeyStorageKey, apiKey.Trim());
+    }
+
+    public async Task<string?> GetApiKeyAsync()
+    {
++       return await SecureStorage.Default.GetAsync(GoogleMapsApiKeyStorageKey);
+    }
+
+    public void ClearApiKey()
+    {
++       SecureStorage.Default.Remove(GoogleMapsApiKeyStorageKey);
+    }
+}
 ```
-
-### הבדל טכני חשוב: `SecureStorage` מול `AndroidManifest.xml`
-* **פקד המפה הטבעי (`<maps:Map>` באנדרואיד):** קורא את `com.google.android.geo.API_KEY` מקובץ `AndroidManifest.xml` בזמן הפעלת האפליקציה (לפני שקוד ה-C# רץ). לכן ב-Git אנו שומרים רק `YOUR_GOOGLE_MAPS_API_KEY_HERE`, ומציבים מפתח אמיתי מקומית בלבד (בלי לעשות לו `commit`).
-* **`SecureStorage` (אחסון מוצפן בזמן ריצה):** הוא הדרך הנכונה והמאובטחת לשמור מפתחות API וסודות שמוזנים בזמן ריצה (כמו מפתח ל-Google Places / Directions / Geocoding REST API או ל-Gemini AI), ולשלוף אותם בכל מסך אחר באפליקציה בלי לשמור אותם בקוד המקור!
-* בדוגמה שלנו, `MainPage` מאפשר לשמור את המפתח ב-`SecureStorage`, ו-`MapDisplayPage` (שלב 2) מדגים שליפה שלו (והצגתו בצורה מוסתרת/Masked: `AIza••••9999`) מבלי לחשוף את המפתח המלא.
 
 ---
 
-## 6. ארכיטקטורת Vanilla C# MVVM ובדיקות יחידה
+## 6. ארכיטקטורת MVVM ומבנה קוד אימות הקונפיגורציה
 
-כדי להדגים ארכיטקטורה נקייה כבר מהשלב הראשון, יצרנו מסך בדיקת תצורה (`MainPage`) שמפריד בין השכבות:
-* **Services (`MapConfigurationValidator.cs`, `SecureKeyStorageService.cs`):** לוגיקת אימות ושמירה מוצפנת.
-* **ViewModel (`SetupStatusViewModel.cs`):** מממש `INotifyPropertyChanged` ו-`ICommand` (כולל `CanExecute`).
-* **View (`MainPage.xaml`):** דף XAML בעברית (`FlowDirection="RightToLeft"`) עם Compiled Bindings (`x:DataType`).
-* **Unit Tests (`MauiGoogleMapSample.Tests/`):** בדיקות אוטומטיות ב-`xunit.v3`. להסבר מלא על הרצת בדיקות ב-Visual Studio וב-`dotnet test`, ראו את המדריך [`00-Working-With-Unit-Tests.pdf`](00-Working-With-Unit-Tests.pdf).
+כדי שהאפליקציה תהיה מסודרת, קריאה וניתנת לבדיקה אוטומטית (Unit Tests), אנו מפרידים את הקוד ל-4 שכבות ברורות (**Vanilla C# MVVM**):
 
-למשימת התרגול שלכם, פתחו את [`Docs/Assignments/01-Setup-And-Permissions-Assignment.pdf`](Assignments/01-Setup-And-Permissions-Assignment.pdf)!
+<div class="mvvm-box">
+<strong>תרשים שכבות MVVM בשלב 1 (מוזרק דרך <code>MauiProgram.cs</code>):</strong>
+<div class="mvvm-flow">
+  <div class="mvvm-layer mvvm-view">
+    <strong>View (תצוגה)</strong><br/>
+    <code>MainPage.xaml</code><br/>
+    שדה קלט, כפתורים וטקסטים.<br/>
+    מתחבר ב-<code>Binding</code> בלבד.
+  </div>
+  <div class="mvvm-arrow">⇄</div>
+  <div class="mvvm-layer mvvm-vm">
+    <strong>ViewModel (מצב ופקודות)</strong><br/>
+    <code>SetupStatusViewModel.cs</code><br/>
+    <code>INotifyPropertyChanged</code><br/>
+    <code>ICommand</code> + <code>CanExecute</code>
+  </div>
+  <div class="mvvm-arrow">→</div>
+  <div class="mvvm-layer mvvm-svc">
+    <strong>Services (לוגיקה ונתונים)</strong><br/>
+    <code>MapConfigurationValidator.cs</code><br/>
+    <code>SecureKeyStorageService.cs</code><br/>
+    בדיקות תקינות וגישה לאחסון.
+  </div>
+  <div class="mvvm-arrow">→</div>
+  <div class="mvvm-layer mvvm-plat">
+    <strong>Platform / OS</strong><br/>
+    <code>AndroidManifest.xml</code><br/>
+    <code>SecureStorage.Default</code><br/>
+    הרשאות ומפתח מוצפן.
+  </div>
+</div>
+</div>
+
+### הסבר על קובץ אימות הקונפיגורציה (`Services/MapConfigurationValidator.cs`)
+
+כדי לעזור לתלמידים ולמשתמש לזהות מיד האם מפתח ה-API הוגדר כראוי, יצרנו את המחלקה `MapConfigurationValidator` ואת טיפוס התוצאה `MapConfigCheckResult(bool IsValid, string StatusTitle, string Details)`.
+
+המתודה `ValidateApiKey(string? apiKey)` מבצעת **3 בדיקות מדורגות**:
+1. **מפתח ריק או רווחים (`string.IsNullOrWhiteSpace`):** מחזירה `IsValid = false` עם הכותרת `"מפתח API חסר"`.
+2. **עדיין מוגדר Placeholder (`YOUR_GOOGLE_MAPS_API_KEY_HERE`):** מחזירה `IsValid = false` ומזכירה שצריך להחליפו במפתח מ-Google Cloud Console.
+3. **אורך קצר מדי (`trimmed.Length < 20`):** מחזירה `IsValid = false` כי מפתחות Google אמיתיים ארוכים מ-20 תווים.
+4. **אחרת:** מחזירה `IsValid = true` (`"פורמט המפתח תקין"`), מה שמפעיל אוטומטית את כפתור `"שמור מוצפן"` דרך `SaveKeyCommand.CanExecute`!
+
+```csharp
+public MapConfigCheckResult ValidateApiKey(string? apiKey)
+{
+    if (string.IsNullOrWhiteSpace(apiKey))
+        return new MapConfigCheckResult(false, "מפתח API חסר", "...");
+
+    string trimmed = apiKey.Trim();
+    if (string.Equals(trimmed, PlaceholderKey, StringComparison.OrdinalIgnoreCase))
+        return new MapConfigCheckResult(false, "מוגדר מפתח Placeholder", "...");
+
+    if (trimmed.Length < 20)
+        return new MapConfigCheckResult(false, "פורמט מפתח קצר מדי", "...");
+
+    return new MapConfigCheckResult(true, "פורמט המפתח תקין", "...");
+}
+```
+
+### דיאגרמות מערכת ובדיקות יחידה
+* בתיקיית `Docs/` מחכים לכם גם קובצי PDF של הדיאגרמות המלאות של הפרויקט:
+  * [`Architecture-Overview.pdf`](Architecture-Overview.pdf) — ארכיטקטורה כללית
+  * [`Architecture-UML.pdf`](Architecture-UML.pdf) — דיאגרמת מחלקות (UML)
+  * [`Screen-Flow.pdf`](Screen-Flow.pdf) — תרשים זרימת מסכים
+* להסבר מלא על הרצת בדיקות היחידה ב-Visual Studio וב-`dotnet test`, ראו [`00-Working-With-Unit-Tests.pdf`](00-Working-With-Unit-Tests.pdf).
+* למשימת התרגול שלכם, פתחו את [`Assignments/01-Setup-And-Permissions-Assignment.pdf`](Assignments/01-Setup-And-Permissions-Assignment.pdf)!
