@@ -129,6 +129,11 @@ obj/
 פתחו את `MauiGoogleMapSample/MauiGoogleMapSample.csproj` (קליק ימני על הפרויקט -> `Edit Project File`) וודאו שהשורות הבאות קיימות לפני `</Project>`:
 
 ```xml
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <PackageReference Include="Microsoft.Maui.Controls.Maps" Version="$(MauiVersion)" />
+  </ItemGroup>
+
 + <!-- טוען את המפתח האמיתי מהקובץ המקומי Secrets.props רק אם הוא קיים -->
 + <Import Project="Secrets.props" Condition="Exists('Secrets.props')" />
 +
@@ -138,6 +143,7 @@ obj/
 +   <!-- מזריק את המפתח לתוך ${GoogleMapsApiKey} בקובץ AndroidManifest.xml בזמן Build -->
 +   <AndroidManifestPlaceholders>GoogleMapsApiKey=$(GoogleMapsApiKey)</AndroidManifestPlaceholders>
 + </PropertyGroup>
+</Project>
 ```
 
 ---

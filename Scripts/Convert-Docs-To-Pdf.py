@@ -177,17 +177,22 @@ CODE_BLOCK_RE = re.compile(r"(<pre><code[^>]*>)(.*?)(</code></pre>)", re.DOTALL)
 IMG_RE = re.compile(r'<img\s+src="([^"]+)"([^>]*)>')
 
 def highlight_added_lines(html_body: str) -> str:
-    """Highlights lines inside <pre><code> blocks that start with '+ ' or contain '◄ הוסף'."""
+    """Highlights added lines inside <pre><code> ONLY when mixed with existing context lines."""
     def repl(match: re.Match) -> str:
         open_tag, inner, close_tag = match.groups()
         lines = inner.split("\n")
+        non_empty = [l for l in lines if l.strip()]
+        marked = [l for l in non_empty if "◄ הוסף" in l or l.startswith("+ ")]
+        all_lines_are_new = len(non_empty) > 0 and len(marked) == len(non_empty)
+
         processed = []
         for line in lines:
-            if "◄ הוסף" in line or line.startswith("+ "):
-                clean_line = line[2:] if line.startswith("+ ") else line
+            is_marked = "◄ הוסף" in line or line.startswith("+ ")
+            clean_line = line[2:] if line.startswith("+ ") else line
+            if is_marked and not all_lines_are_new:
                 processed.append(f'<span class="code-add-line">{clean_line}</span>')
             else:
-                processed.append(line)
+                processed.append(clean_line)
         return open_tag + "\n".join(processed) + close_tag
 
     return CODE_BLOCK_RE.sub(repl, html_body)

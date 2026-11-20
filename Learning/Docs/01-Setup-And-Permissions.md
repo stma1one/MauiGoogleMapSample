@@ -84,23 +84,23 @@ builder
 | `SetupStatusViewModel` | **מחלקה שכתבנו בעצמנו** (`ViewModels/`) | ה-ViewModel של מסך שלב 1 (`MainPage`). |
 
 ```csharp
-+ private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
-+ {
-+     builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
-+     return builder;
-+ }
-+
-+ private static MauiAppBuilder RegisterViewModels(this MauiAppBuilder builder)
-+ {
-+     builder.Services.AddTransient<SetupStatusViewModel>();
-+     return builder;
-+ }
-+
-+ private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
-+ {
-+     builder.Services.AddTransient<MainPage>();
-+     return builder;
-+ }
+private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
+{
+    builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
+    return builder;
+}
+
+private static MauiAppBuilder RegisterViewModels(this MauiAppBuilder builder)
+{
+    builder.Services.AddTransient<SetupStatusViewModel>();
+    return builder;
+}
+
+private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
+{
+    builder.Services.AddTransient<MainPage>();
+    return builder;
+}
 ```
 
 ---
