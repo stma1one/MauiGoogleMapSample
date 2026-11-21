@@ -121,7 +121,7 @@ public class CoffeeRegionService : ICoffeeRegionService
     {
         ArgumentNullException.ThrowIfNull(region);
 
-        // אם לא הועבר רדיוס זום מפורש — נשתמש ברדיוס ברירת המחדל של האזור
+        // אם לא הועבר רדיוס זום מפורש — נשתמש ברדיוס ברירת המחדל של האזור (ראו הסבר על האופרטור ?? בתיבה מתחת לקוד)
         double radiusKm = overrideRadiusKm ?? region.DefaultRadiusKm;
 
         // Clamping: מונע זום קטן מדי (קריסה/מסך ריק) או רחוק מדי

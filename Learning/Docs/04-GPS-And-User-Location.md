@@ -31,6 +31,7 @@
 
 ### ממשק השירות (`Services/ILocationService.cs`)
 ```csharp
+// ראו הסבר על record ו-Tuple בתיבה מתחת לקוד
 public record LocationFetchResult(bool IsSuccess, bool PermissionGranted, Location? Location, string Message);
 
 /// <summary>חוזה לעבודה עם הרשאות GPS, שליפת מיקום וחישוב מרחק לתחנה הקרובה.</summary>

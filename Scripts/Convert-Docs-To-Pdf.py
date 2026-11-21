@@ -54,6 +54,8 @@ blockquote {
     margin: 12px 0;
     padding: 10px 14px;
     border-radius: 6px;
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 .alert-important {
     background: #eff6ff;
@@ -61,6 +63,8 @@ blockquote {
     margin: 12px 0;
     padding: 10px 14px;
     border-radius: 6px;
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 .alert-security {
     background: #fef2f2;
@@ -68,6 +72,8 @@ blockquote {
     margin: 12px 0;
     padding: 10px 14px;
     border-radius: 6px;
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 code {
     font-family: Consolas, 'Courier New', monospace;

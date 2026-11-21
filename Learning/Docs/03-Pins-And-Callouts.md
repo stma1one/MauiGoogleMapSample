@@ -45,6 +45,7 @@ public class CoffeeStation
     public double Latitude { get; set; }
     public double Longitude { get; set; }
 
+    // מאפיין מחושב (ראו הסבר על התחביר => בתיבה מתחת לקוד)
     public Location Location => new Location(Latitude, Longitude);
 }
 ```
