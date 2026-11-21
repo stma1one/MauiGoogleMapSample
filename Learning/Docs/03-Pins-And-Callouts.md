@@ -51,9 +51,26 @@ public class CoffeeStation
 
 ---
 
-## 4. שלב ב' — ה-ViewModel (`ViewModels/CoffeePinsViewModel.cs`)
+## 4. שלב ב' — ממשק השירות וה-ViewModel (`CoffeePinsViewModel.cs`)
 
-ב-`CoffeePinsViewModel` אנו מחזיקים `ObservableCollection<CoffeeStation> Stations`.  
+### ממשק השירות (`Services/ICoffeeStationService.cs`)
+```csharp
+/// <summary>חוזה לשירות שמספק את תחנות הקפה ומאפשר סינון לפי מילת חיפוש.</summary>
+public interface ICoffeeStationService
+{
+    IReadOnlyList<CoffeeStation> GetStations();
+    IReadOnlyList<CoffeeStation> FilterStations(string? query);
+}
+```
+
+### טבלת ה-Properties ב-`CoffeePinsViewModel` והשימוש בהם
+| מאפיין (`Property`) | טיפוס | תפקיד ושימוש ב-XAML / לוגיקה |
+| :--- | :--- | :--- |
+| `Stations` | `ObservableCollection<CoffeeStation>` | רשימת התחנות — מחובר ל-`<maps:Map ItemsSource="{Binding Stations}">`. |
+| `SearchQuery` | `string` | מילת החיפוש שהוקלדה ב-`Entry` — מפעילה `ClearFilterCommand.ChangeCanExecute()`. |
+| `SelectedStation` | `CoffeeStation?` | תחנת הקפה האחרונה שנלחצה על המפה. |
+| `SelectedStationBanner` | `string` | טקסט פס המידע בתחתית המסך (`Label Text="{Binding SelectedStationBanner}"`). |
+
 כאשר המשתמש לוחץ על "סנן", אנו מנקים וטוענים מחדש את `Stations` — ומכיוון שהמפה קשורה אליו ב-`ItemsSource`, הסיכות על המפה מתעדכנות אוטומטית!
 
 ```csharp

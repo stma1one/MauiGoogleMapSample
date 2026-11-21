@@ -35,22 +35,23 @@
                     Command="{Binding ZoomOutCommand}" />
         </HorizontalStackLayout>
 
-        <!-- Coffee Hub Region Selector -->
-        <CollectionView Grid.Row="1"
-                        ItemsSource="{Binding Regions}"
-                        ItemsLayout="HorizontalList"
-                        HeightRequest="48"
-                        SelectionMode="None">
-            <CollectionView.ItemTemplate>
+        <!-- Coffee Hub Region Selector (wraps cleanly so no city name is clipped) -->
+        <FlexLayout Grid.Row="1"
+                    BindableLayout.ItemsSource="{Binding Regions}"
+                    Wrap="Wrap"
+                    JustifyContent="Center"
+                    AlignItems="Center">
+            <BindableLayout.ItemTemplate>
                 <DataTemplate x:DataType="models:CoffeeRegion">
                     <Button Text="{Binding Name}"
-                            Margin="4,2"
-                            FontSize="13"
+                            Margin="4,3"
+                            Padding="10,6"
+                            FontSize="12"
                             Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MapDisplayViewModel}}, Path=SelectRegionCommand}"
                             CommandParameter="{Binding .}" />
                 </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+            </BindableLayout.ItemTemplate>
+        </FlexLayout>
 
         <!-- Native MAUI Google Map Control -->
         <Border Grid.Row="2"

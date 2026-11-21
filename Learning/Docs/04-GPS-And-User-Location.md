@@ -27,7 +27,20 @@
 
 ---
 
-## 3. שלב א' — שירות המיקום (`Services/LocationService.cs`)
+## 3. שלב א' — ממשק השירות ושירות המיקום (`Services/ILocationService.cs` ו-`LocationService.cs`)
+
+### ממשק השירות (`Services/ILocationService.cs`)
+```csharp
+public record LocationFetchResult(bool IsSuccess, bool PermissionGranted, Location? Location, string Message);
+
+/// <summary>חוזה לעבודה עם הרשאות GPS, שליפת מיקום וחישוב מרחק לתחנה הקרובה.</summary>
+public interface ILocationService
+{
+    Task<LocationFetchResult> GetCurrentLocationAsync();
+    double CalculateDistanceKm(Location from, Location to);
+    (CoffeeStation? Station, double DistanceKm) FindNearestStation(Location userLocation, IEnumerable<CoffeeStation> stations);
+}
+```
 
 בשלב 1 הצהרנו ב-`AndroidManifest.xml` על הרשאות מיקום, אבל באנדרואיד חובה גם לבקש **הרשאה בזמן ריצה** לפני קריאת ה-GPS:
 
@@ -62,7 +75,16 @@ public double CalculateDistanceKm(Location from, Location to)
 
 ---
 
-## 4. שלב ב' — עבודה אסינכרונית ב-`ViewModels/UserLocationViewModel.cs`
+## 4. שלב ב' — עבודה אסינכרונית וטבלת Properties ב-`ViewModels/UserLocationViewModel.cs`
+
+| מאפיין (`Property`) | טיפוס | תפקיד ושימוש ב-XAML / לוגיקה |
+| :--- | :--- | :--- |
+| `IsLoading` (מורש מ-`BaseViewModel`) | `bool` | מציג `<ActivityIndicator>` ומשבית את `LocateMeCommand` דרך `CanExecute`. |
+| `Stations` | `ObservableCollection<CoffeeStation>` | תחנות הקפה המוצגות כסיכות על מפת ה-GPS. |
+| `IsShowingUser` | `bool` | מחובר ל-`<maps:Map IsShowingUser="{Binding IsShowingUser}">` (מופעל רק אחרי הרשאה!). |
+| `CurrentUserLocation` | `Location?` | קואורדינטות ה-GPS האחרונות שהתקבלו מהמכשיר. |
+| `LocationStatus` | `string` | הודעת סטטוס/שגיאה למשתמש בתחתית המסך. |
+| `NearestStationSummary` | `string` | שם התחנה הקרובה ביותר והמרחק אליה בק"מ. |
 
 שימו לב ל-4 עקרונות מפתח ב-`ExecuteLocateMeAsync()`:
 1. מפעילים `IsLoading = true` (שמפעיל `<ActivityIndicator>` במסך) ומשביתים את הכפתור דרך `CanExecute => !IsLoading`.

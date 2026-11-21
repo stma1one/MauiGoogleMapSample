@@ -109,19 +109,33 @@ pre code {
 }
 table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     margin: 12px 0;
-    font-size: 9.8pt;
+    font-size: 9.2pt;
     page-break-inside: avoid;
 }
 th, td {
     border: 1px solid #cbd5e1;
-    padding: 7px 10px;
+    padding: 7px 8px;
     text-align: right;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 th {
     background: #5d4037;
     color: #ffffff;
+}
+th code {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    white-space: normal;
+}
+td code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 tr:nth-child(even) { background: #f8fafc; }
 a { color: #1d4ed8; }

@@ -25,7 +25,18 @@
 
 ---
 
-## 3. שלב א' — בניית הצורות בשירות (`Services/CoffeeRouteService.cs`)
+## 3. שלב א' — ממשק השירות ובניית הצורות (`Services/ICoffeeRouteService.cs` ו-`CoffeeRouteService.cs`)
+
+### ממשק השירות (`Services/ICoffeeRouteService.cs`)
+```csharp
+/// <summary>חוזה לבניית שכבות מפה (Polyline / Circle) וחישוב אורך סיור הקפה.</summary>
+public interface ICoffeeRouteService
+{
+    Polyline BuildCoffeeTourPolyline(IEnumerable<CoffeeStation> stations);
+    Circle BuildDeliveryZoneCircle(Location center, double radiusMeters);
+    double CalculateTotalTourDistanceKm(IReadOnlyList<CoffeeStation> stations);
+}
+```
 
 ```csharp
 public Polyline BuildCoffeeTourPolyline(IEnumerable<CoffeeStation> stations)
@@ -59,7 +70,15 @@ public Circle BuildDeliveryZoneCircle(Location center, double radiusMeters)
 
 ---
 
-## 4. שלב ב' — ה-ViewModel וה-Event שלנו (`ViewModels/CoffeeRoutesViewModel.cs`)
+## 4. שלב ב' — טבלת Properties וה-Event שלנו (`ViewModels/CoffeeRoutesViewModel.cs`)
+
+| מאפיין (`Property`) | טיפוס | תפקיד ושימוש ב-XAML / לוגיקה |
+| :--- | :--- | :--- |
+| `Stations` | `ObservableCollection<CoffeeStation>` | תחנות הקפה שמוצגות כסיכות ומשמשות לבניית המסלול. |
+| `ShowRoute` | `bool` | האם שכבת ה-`Polyline` פעילה — משנה את `ClearOverlaysCommand` ומפעיל `MapElementsChanged`. |
+| `ShowDeliveryZone` | `bool` | האם שכבת ה-`Circle` פעילה — משנה את `ClearOverlaysCommand` ומפעיל `MapElementsChanged`. |
+| `TotalTourDistanceKm` | `double` | האורך הכולל של סיור הקפה בק"מ. |
+| `RouteSummary` | `string` | שורת הסיכום בתחתית המסך (`Label Text="{Binding RouteSummary}"`). |
 
 כיוון ש-`Map.MapElements` מתעדכן בקוד ה-View, יצרנו ב-`CoffeeRoutesViewModel` את האירוע `MapElementsChanged` ואת המתודה `BuildActiveMapElements()`:
 

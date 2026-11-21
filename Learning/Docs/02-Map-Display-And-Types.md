@@ -69,7 +69,28 @@ public class CoffeeRegion
 2. **`Distance.FromKilometers(radiusKm)`** — המרחק מהמרכז אל קצה המסך (רדיוס קטן יותר = זום קרוב יותר!).
 3. **`MapSpan.FromCenterAndRadius(center, distance)`** — יוצר את "חלון המפה" (אזור הצפייה) שאותו נעביר למפה.
 
-בנוסף, אנו מגדירים **ממשק** `ICoffeeRegionService` (כדי שנוכל להזריק אותו ב-DI ולבדוק אותו ב-Unit Tests), ומגבילים את הרדיוס לטווח בטוח (`0.2` עד `25.0` ק"מ — פעולה שנקראת **Clamping**) כדי שהמפה לא תקרוס אם הועבר מספר שלילי או אפס:
+בנוסף, אנו מגדירים **ממשק** `Services/ICoffeeRegionService.cs` (כדי שנוכל להזריק את השירות ב-DI ולבדוק אותו ב-Unit Tests):
+
+```csharp
+using MauiGoogleMapSample.Models;
+using Microsoft.Maui.Maps;
+
+namespace MauiGoogleMapSample.Services;
+
+/// <summary>
+/// חוזה לשירות שמספק את אזורי הקפה ובונה עבורם MapSpan למיקוד המפה.
+/// </summary>
+public interface ICoffeeRegionService
+{
+    /// <summary>מחזיר את רשימת אזורי ברירת המחדל (תל אביב, ירושלים, חיפה).</summary>
+    IReadOnlyList<CoffeeRegion> GetDefaultRegions();
+
+    /// <summary>בונה חלון צפייה (MapSpan) סביב אזור נתון, עם אפשרות לרדיוס זום מותאם.</summary>
+    MapSpan BuildMapSpan(CoffeeRegion region, double? overrideRadiusKm = null);
+}
+```
+
+וכך נראה המימוש המתועד ב-`Services/CoffeeRegionService.cs` (כולל הגבלת רדיוס לטווח בטוח — **Clamping** בין `0.2` ל-`25.0` ק"מ כדי שהמפה לא תקרוס אם הועבר מספר שלילי או אפס):
 
 ```csharp
 using MauiGoogleMapSample.Models;
@@ -80,22 +101,30 @@ namespace MauiGoogleMapSample.Services;
 
 public class CoffeeRegionService : ICoffeeRegionService
 {
+    /// <summary>
+    /// מחזיר 3 מוקדי קפה מרכזיים בישראל עם הקואורדינטות ורדיוס הזום שלהם.
+    /// </summary>
     public IReadOnlyList<CoffeeRegion> GetDefaultRegions()
     {
         return new List<CoffeeRegion>
         {
-            new() { Name = "תל אביב — רוטשילד", Latitude = 32.0636, Longitude = 34.7731, DefaultRadiusKm = 1.2 },
-            new() { Name = "ירושלים — מחנה יהודה", Latitude = 31.7850, Longitude = 35.2124, DefaultRadiusKm = 1.5 },
-            new() { Name = "חיפה — המושבה הגרמנית", Latitude = 32.8191, Longitude = 34.9912, DefaultRadiusKm = 1.8 }
+            new() { Name = "תל אביב — רוטשילד", Description = "שדרת בתי הקפה המרכזית", Latitude = 32.0636, Longitude = 34.7731, DefaultRadiusKm = 1.2 },
+            new() { Name = "ירושלים — מחנה יהודה", Description = "תחנות קפה סביב השוק", Latitude = 31.7850, Longitude = 35.2124, DefaultRadiusKm = 1.5 },
+            new() { Name = "חיפה — המושבה הגרמנית", Description = "בתי קפה מול הגנים הבהאיים", Latitude = 32.8191, Longitude = 34.9912, DefaultRadiusKm = 1.8 }
         };
     }
 
+    /// <summary>
+    /// יוצר אובייקט MapSpan ממורכז על קואורדינטות האזור ומוגן מפני רדיוס חריג.
+    /// </summary>
     public MapSpan BuildMapSpan(CoffeeRegion region, double? overrideRadiusKm = null)
     {
         ArgumentNullException.ThrowIfNull(region);
 
-        // שימוש ברדיוס שהועבר או בברירת המחדל, תוך הגבלה לטווח בטוח (0.2 עד 25 ק"מ)
+        // אם לא הועבר רדיוס זום מפורש — נשתמש ברדיוס ברירת המחדל של האזור
         double radiusKm = overrideRadiusKm ?? region.DefaultRadiusKm;
+
+        // Clamping: מונע זום קטן מדי (קריסה/מסך ריק) או רחוק מדי
         if (radiusKm < 0.2) radiusKm = 0.2;
         else if (radiusKm > 25.0) radiusKm = 25.0;
 
@@ -149,8 +178,20 @@ public class MapDisplayViewModel : BaseViewModel
 }
 ```
 
-### צעד 2: הגדרת המאפיינים (`Properties`) עם `OnPropertyChanged()`
-לכל מאפיין שהמסך קשור אליו (`Binding`) יש שדה פרטי ו-Setter מפורש בן 3 שורות. שימו לב שב-`ZoomRadiusKm` אנו קוראים גם ל-`ChangeCanExecute()` כדי שפקודות הזום (`+`/`-`) יידעו מיד אם הגענו לגבול וצריך להשבית את הכפתור:
+### צעד 2: טבלת כל ה-Properties ב-`MapDisplayViewModel` והשימוש בהם
+
+לפני כתיבת ה-Setters, להלן מיפוי מלא של כל מאפיין ב-ViewModel ולמה הוא משמש במסך:
+
+| מאפיין (`Property`) | טיפוס | תפקיד ושימוש ב-XAML / לוגיקה |
+| :--- | :--- | :--- |
+| `Title` (מורש מ-`BaseViewModel`) | `string` | כותרת הדף בסרגל העליון (`Title="{Binding Title}"`). |
+| `Regions` | `ObservableCollection<CoffeeRegion>` | רשימת ערי הקפה — מחובר ל-`FlexLayout` (`BindableLayout.ItemsSource`). |
+| `SelectedMapType` | `MapType` | סוג התצוגה הפעיל (`Street`/`Satellite`/`Hybrid`) — מחובר ל-`<maps:Map MapType="{Binding SelectedMapType}">`. |
+| `SelectedRegion` | `CoffeeRegion` | העיר הנבחרת כרגע (משמשת לבניית ה-`MapSpan` ולפס הסיכום). |
+| `ZoomRadiusKm` | `double` | רדיוס הזום הנוכחי בק"מ — מפעיל `ChangeCanExecute()` על כפתורי `+`/`-` כשמשתנה. |
+| `RegionSummary` | `string` | שורת הסיכום בתחתית המסך (`Label Text="{Binding RegionSummary}"`). |
+
+לכל מאפיין שהמסך קשור אליו (`Binding`) יש שדה פרטי ו-Setter מפורש בן 3 שורות:
 
 ```csharp
 public MapType SelectedMapType
@@ -268,16 +309,16 @@ private void RequestMapMove()
     <Button Text="-" WidthRequest="44" Command="{Binding ZoomOutCommand}" />
 </HorizontalStackLayout>
 
-<!-- Row 1: בחירת עיר -->
-<CollectionView Grid.Row="1" ItemsSource="{Binding Regions}" ItemsLayout="HorizontalList" HeightRequest="48">
-    <CollectionView.ItemTemplate>
+<!-- Row 1: בחירת עיר (FlexLayout עם Wrap=Wrap כדי שאף עיר לא תיחתך בצד המסך!) -->
+<FlexLayout Grid.Row="1" BindableLayout.ItemsSource="{Binding Regions}" Wrap="Wrap" JustifyContent="Center">
+    <BindableLayout.ItemTemplate>
         <DataTemplate x:DataType="models:CoffeeRegion">
-            <Button Text="{Binding Name}" Margin="4,2" FontSize="13"
+            <Button Text="{Binding Name}" Margin="4,3" Padding="10,6" FontSize="12"
                     Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MapDisplayViewModel}}, Path=SelectRegionCommand}"
                     CommandParameter="{Binding .}" />
         </DataTemplate>
-    </CollectionView.ItemTemplate>
-</CollectionView>
+    </BindableLayout.ItemTemplate>
+</FlexLayout>
 ```
 
 ### צעד 4: הצבת פקד המפה (`Row 2`) ופס הסיכום (`Row 3`)
