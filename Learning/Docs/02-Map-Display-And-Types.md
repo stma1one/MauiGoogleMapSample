@@ -381,7 +381,18 @@ public MapDisplayPage(MapDisplayViewModel viewModel)
 * כשהדף מופיע (`OnAppearing`), נרשמים לאירוע שיצרנו ב-ViewModel (`+=`) וממקדים את המפה על העיר הראשונה.
 * כשהמשתמש עוזב את הדף (`OnDisappearing`), **חובה** לבטל את ההרשמה (`-=`) כדי שהאירוע לא ישאיר את הדף תקוע בזיכרון (מניעת **Memory Leak**).
 
-### צעד 4: הקוד המלא של `Views/MapDisplayPage.xaml.cs`
+### צעד 4: הסבר על כל הפעולות והקוד המלא של `Views/MapDisplayPage.xaml.cs`
+
+לפניכם פירוט של כל מתודה בקובץ, מתי היא מופעלת ולמה היא נדרשת:
+
+| פעולה (`Method`) | מתי היא מופעלת? | מה היא עושה ולמה היא חשובה? |
+| :--- | :--- | :--- |
+| `MapDisplayPage(MapDisplayViewModel viewModel)` | בעת יצירת הדף (על ידי DI) | טוענת את ה-XAML (`InitializeComponent()`), שומרת את ה-ViewModel ומגדירה אותו כ-`BindingContext`. |
+| `OnAppearing()` | בכל פעם שהמסך מופיע לעיני המשתמש | נרשמת (`+=`) לאירוע `MoveToRegionRequested` של ה-ViewModel, ומבצעת מיקוד ראשוני של המפה על העיר הראשונה. |
+| `OnDisappearing()` | בכל פעם שהמשתמש עוזב את המסך | מבטלת את ההרשמה (`-=`) לאירוע כדי למנוע דליפת זיכרון (**Memory Leak**) והפעלה כפולה בחזרה למסך. |
+| `OnMoveToRegionRequested(MapSpan span)` | בכל פעם שה-ViewModel מפעיל `MoveToRegionRequested` (בלחיצה על עיר או זום `+`/`-`) | מעבירה את בקשת המיקוד ל-`SafeMoveToRegion(span)` דרך `Dispatcher.Dispatch(...)` על ה-UI Thread. |
+| `SafeMoveToRegion(MapSpan span)` | מתוך `OnAppearing()` ומתוך `OnMoveToRegionRequested` | מפעילה `CoffeeMapControl?.MoveToRegion(span)` בתוך `try/catch` כדי להגן מפני קריסה אם המפה עדיין לא סיימה להיטען. |
+
 ```csharp
 using MauiGoogleMapSample.ViewModels;
 using Microsoft.Maui.Maps;
@@ -392,6 +403,9 @@ public partial class MapDisplayPage : ContentPage
 {
     private readonly MapDisplayViewModel _viewModel;
 
+    /// <summary>
+    /// בנאי הדף: מקבל את ה-ViewModel בהזרקת תלויות (DI) ומחבר אותו ל-BindingContext.
+    /// </summary>
     public MapDisplayPage(MapDisplayViewModel viewModel)
     {
         InitializeComponent();
@@ -399,6 +413,11 @@ public partial class MapDisplayPage : ContentPage
         BindingContext = _viewModel;
     }
 
+    /// <summary>
+    /// מופעל אוטומטית על ידי MAUI כשהמסך עולה:
+    /// 1. נרשם לאירוע המיקוד מה-ViewModel.
+    /// 2. ממקד את המפה על אזור ברירת המחדל (תל אביב) דרך ה-Dispatcher.
+    /// </summary>
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -406,17 +425,27 @@ public partial class MapDisplayPage : ContentPage
         Dispatcher.Dispatch(() => SafeMoveToRegion(_viewModel.GetCurrentMapSpan()));
     }
 
+    /// <summary>
+    /// מופעל אוטומטית כשהמשתמש יוצא מהמסך:
+    /// מבטל את הרישום לאירוע (-=) כדי למנוע דליפת זיכרון (Memory Leak).
+    /// </summary>
     protected override void OnDisappearing()
     {
         _viewModel.MoveToRegionRequested -= OnMoveToRegionRequested;
         base.OnDisappearing();
     }
 
+    /// <summary>
+    /// Event Handler שמופעל כשה-ViewModel משדר בקשה חדשה להזזת המפה (בחירת עיר או זום).
+    /// </summary>
     private void OnMoveToRegionRequested(MapSpan span)
     {
         Dispatcher.Dispatch(() => SafeMoveToRegion(span));
     }
 
+    /// <summary>
+    /// מזיז את פקד המפה אל ה-MapSpan החדש בצורה בטוחה (מוגן ב-?. וב-try/catch).
+    /// </summary>
     private void SafeMoveToRegion(MapSpan span)
     {
         try
@@ -425,6 +454,7 @@ public partial class MapDisplayPage : ContentPage
         }
         catch (Exception ex)
         {
+            // אם המפה באנדרואיד עדיין לא סיימה אתחול, רושמים לוג במקום לקרוס
             System.Diagnostics.Debug.WriteLine($"[CoffeeMap] MoveToRegion skipped: {ex.Message}");
         }
     }
