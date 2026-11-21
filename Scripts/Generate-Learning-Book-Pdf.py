@@ -192,7 +192,7 @@ def generate_html_document(combined_md: str, project_info: dict, learning_dir: P
       size: A4;
       margin: 16mm 14mm 18mm 14mm;
       @bottom-left {{
-        content: "ספר למידה והנדסה — .NET MAUI K-12";
+        content: "נוצר על ידי טל סימון - tal.simon@gmail.com";
         font-family: 'Assistant', sans-serif;
         font-size: 8.5pt;
         color: #64748b;
@@ -556,10 +556,26 @@ def generate_html_document(combined_md: str, project_info: dict, learning_dir: P
       margin: 24px 0;
     }}
 
+    .pdf-watermark {{
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-32deg);
+      font-size: 24pt;
+      font-weight: 700;
+      color: rgba(62, 39, 35, 0.085);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 9999;
+      direction: rtl;
+      user-select: none;
+    }}
+
     {pygments_css}
   </style>
 </head>
 <body>
+  <div class="pdf-watermark">נוצר על ידי טל סימון - tal.simon@gmail.com</div>
 
   <!-- Cover Page -->
   <div class="cover-page">

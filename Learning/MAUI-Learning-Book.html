@@ -24,7 +24,7 @@
       size: A4;
       margin: 16mm 14mm 18mm 14mm;
       @bottom-left {
-        content: "ספר למידה והנדסה — .NET MAUI K-12";
+        content: "נוצר על ידי טל סימון - tal.simon@gmail.com";
         font-family: 'Assistant', sans-serif;
         font-size: 8.5pt;
         color: #64748b;
@@ -388,6 +388,21 @@
       margin: 24px 0;
     }
 
+    .pdf-watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-32deg);
+      font-size: 24pt;
+      font-weight: 700;
+      color: rgba(62, 39, 35, 0.085);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 9999;
+      direction: rtl;
+      user-select: none;
+    }
+
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
 span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -466,6 +481,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   </style>
 </head>
 <body>
+  <div class="pdf-watermark">נוצר על ידי טל סימון - tal.simon@gmail.com</div>
 
   <!-- Cover Page -->
   <div class="cover-page">

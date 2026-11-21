@@ -24,7 +24,21 @@ if sys.platform == "win32":
         pass
 
 CSS = """
-@page { size: A4; margin: 16mm 15mm; }
+@page { size: A4; margin: 16mm 15mm 18mm 15mm; }
+.pdf-watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-32deg);
+    font-size: 24pt;
+    font-weight: 700;
+    color: rgba(62, 39, 35, 0.085);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 9999;
+    direction: rtl;
+    user-select: none;
+}
 body {
     font-family: 'Segoe UI', 'Arial', sans-serif;
     direction: rtl;
@@ -244,7 +258,21 @@ def embed_local_images(html_body: str, md_dir: Path, project_root: Path) -> str:
 def export_diagram_pdfs(page, project_root: Path, output_pdf_root: Path) -> None:
     """Exports true horizontal (wide Landscape A4) Architecture, UML, and Screen Flow PDFs in Docs/."""
     base_css = """
-@page { size: A4 landscape; margin: 10mm 12mm; }
+@page { size: A4 landscape; margin: 10mm 12mm 14mm 12mm; }
+.pdf-watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-24deg);
+    font-size: 28pt;
+    font-weight: 700;
+    color: rgba(62, 39, 35, 0.085);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 9999;
+    direction: rtl;
+    user-select: none;
+}
 * { box-sizing: border-box; }
 body {
     font-family: 'Segoe UI', 'Arial', sans-serif;
@@ -574,16 +602,35 @@ code {
 </div>
 </body></html>"""
 
+    watermark_div = '<div class="pdf-watermark">נוצר על ידי טל סימון - tal.simon@gmail.com</div>'
+    footer_tpl = (
+        '<div style="width:100%; font-family:Segoe UI,Arial,sans-serif; font-size:8px; '
+        'color:#64748b; display:flex; justify-content:space-between; padding:0 12mm; direction:rtl;">'
+        '<span>נוצר על ידי טל סימון - tal.simon@gmail.com</span>'
+        '<span>עמוד <span class="pageNumber"></span> מתוך <span class="totalPages"></span></span>'
+        '</div>'
+    )
     outputs = [
-        ("Architecture-Overview.pdf", arch_html),
-        ("Architecture-UML.pdf", uml_html),
-        ("Screen-Flow.pdf", flow_html),
+        ("Architecture-Overview.pdf", arch_html.replace("<body>", f"<body>{watermark_div}", 1)),
+        ("Architecture-UML.pdf", uml_html.replace("<body>", f"<body>{watermark_div}", 1)),
+        ("Screen-Flow.pdf", flow_html.replace("<body>", f"<body>{watermark_div}", 1)),
     ]
     for pdf_name, doc_html in outputs:
         pdf_path = output_pdf_root / pdf_name
         page.set_content(doc_html, wait_until="networkidle")
-        page.pdf(path=str(pdf_path), format="A4", landscape=True, print_background=True)
-        print(f"[PDF] Generated Horizontal Landscape Diagram {pdf_path}")
+        try:
+            page.pdf(
+                path=str(pdf_path),
+                format="A4",
+                landscape=True,
+                print_background=True,
+                display_header_footer=True,
+                header_template="<span></span>",
+                footer_template=footer_tpl,
+            )
+            print(f"[PDF] Generated Horizontal Landscape Diagram {pdf_path}")
+        except PermissionError:
+            print(f"[SKIP LOCKED] {pdf_path} is open in another program; skipped.")
 
 def convert_all(source_md_root: Path, output_pdf_root: Path) -> None:
     project_root = Path.cwd().resolve()
@@ -606,6 +653,14 @@ def convert_all(source_md_root: Path, output_pdf_root: Path) -> None:
             body_html = highlight_added_lines(body_html)
             body_html = embed_local_images(body_html, md_path.parent, project_root)
 
+            watermark_div = '<div class="pdf-watermark">נוצר על ידי טל סימון - tal.simon@gmail.com</div>'
+            footer_tpl = (
+                '<div style="width:100%; font-family:Segoe UI,Arial,sans-serif; font-size:8px; '
+                'color:#64748b; display:flex; justify-content:space-between; padding:0 15mm; direction:rtl;">'
+                '<span>נוצר על ידי טל סימון - tal.simon@gmail.com</span>'
+                '<span>עמוד <span class="pageNumber"></span> מתוך <span class="totalPages"></span></span>'
+                '</div>'
+            )
             full_html = f"""<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -614,12 +669,20 @@ def convert_all(source_md_root: Path, output_pdf_root: Path) -> None:
 <style>{CSS}</style>
 </head>
 <body>
+{watermark_div}
 {body_html}
 </body>
 </html>"""
             page.set_content(full_html, wait_until="networkidle")
             try:
-                page.pdf(path=str(pdf_path), format="A4", print_background=True)
+                page.pdf(
+                    path=str(pdf_path),
+                    format="A4",
+                    print_background=True,
+                    display_header_footer=True,
+                    header_template="<span></span>",
+                    footer_template=footer_tpl,
+                )
                 print(f"[PDF] Generated {pdf_path}")
             except PermissionError:
                 print(f"[SKIP LOCKED] {pdf_path} is open in another program; skipped.")
