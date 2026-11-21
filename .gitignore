@@ -9,6 +9,10 @@ obj/
 *.userosscache
 *.sln.docstates
 
+# Local API keys & secrets (NEVER commit to Git!)
+Secrets.props
+**/Secrets.props
+
 # Python cache
 __pycache__/
 *.pyc
