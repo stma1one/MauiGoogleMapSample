@@ -618,8 +618,11 @@ def convert_all(source_md_root: Path, output_pdf_root: Path) -> None:
 </body>
 </html>"""
             page.set_content(full_html, wait_until="networkidle")
-            page.pdf(path=str(pdf_path), format="A4", print_background=True)
-            print(f"[PDF] Generated {pdf_path}")
+            try:
+                page.pdf(path=str(pdf_path), format="A4", print_background=True)
+                print(f"[PDF] Generated {pdf_path}")
+            except PermissionError:
+                print(f"[SKIP LOCKED] {pdf_path} is open in another program; skipped.")
 
         export_diagram_pdfs(page, project_root, output_pdf_root)
         browser.close()
