@@ -11,7 +11,7 @@
 
 בשלב זה נבנה את מסך **`CoffeeRoutesPage`** שמצייר מעל המפה **מסלול סיור קפה (`Polyline`)** המחבר את כל התחנות, ו**אזור משלוחים (`Circle`)** ברדיוס 800 מטר, עם כפתורי הצגה/הסתרה וניקוי שכבות:
 
-![תצוגת מסך שלב 5 - CoffeeRoutesPage](../../Learning/Images/CoffeeRoutesPage-overview.png)
+![תצוגת מסך שלב 5 (צילום חי מאימולטור Android) - CoffeeRoutesPage](../../Learning/Images/CoffeeRoutesPage-live.png)
 
 ---
 

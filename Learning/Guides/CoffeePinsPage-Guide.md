@@ -4,7 +4,7 @@
 
 ## 1. תצוגת המסך (Android Mockup)
 
-![מסך שלב 3 - סיכות תחנות קפה](../Images/CoffeePinsPage-overview.png)
+![מסך שלב 3 - סיכות תחנות קפה (צילום חי מ-DevFlow)](../Images/CoffeePinsPage-live.png)
 
 ## 2. רכיבי השלב
 * **`Models/CoffeeStation.cs`** — מודל תחנת קפה עם `Location` מחושב.

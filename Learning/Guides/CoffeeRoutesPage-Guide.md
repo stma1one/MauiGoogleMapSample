@@ -4,7 +4,7 @@
 
 ## 1. תצוגת המסך (Android Mockup)
 
-![מסך שלב 5 - מסלולים וצורות](../Images/CoffeeRoutesPage-overview.png)
+![מסך שלב 5 - מסלולים וצורות (צילום חי מ-DevFlow)](../Images/CoffeeRoutesPage-live.png)
 
 ## 2. רכיבי השלב
 * **`Services/ICoffeeRouteService.cs` ו-`CoffeeRouteService.cs`** — בניית `Polyline`, `Circle` וחישוב אורך מסלול כולל (`CalculateTotalTourDistanceKm`).

@@ -11,7 +11,7 @@
 
 בשלב זה נבנה את מסך **`CoffeePinsPage`** שמציג תחנות קפה על המפה כסיכות (`Pins`), מאפשר לסנן אותן בזמן אמת משורת חיפוש, ומגיב ללחיצה על סיכה או על בועת המידע שלה:
 
-![תצוגת מסך שלב 3 - CoffeePinsPage](../../Learning/Images/CoffeePinsPage-overview.png)
+![תצוגת מסך שלב 3 (צילום חי מאימולטור Android) - CoffeePinsPage](../../Learning/Images/CoffeePinsPage-live.png)
 
 ---
 

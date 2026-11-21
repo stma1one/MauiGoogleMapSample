@@ -4,7 +4,7 @@
 
 ## 1. תצוגת המסך (Android Mockup)
 
-![מסך שלב 2 - תצוגת מפה](../Images/MapDisplayPage-overview.png)
+![מסך שלב 2 - תצוגת מפה (צילום חי מ-DevFlow)](../Images/MapDisplayPage-live.png)
 
 ## 2. ארכיטקטורת Vanilla C# MVVM
 

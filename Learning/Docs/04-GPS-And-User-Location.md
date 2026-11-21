@@ -11,7 +11,7 @@
 
 בשלב זה נבנה את מסך **`UserLocationPage`** שמבקש מהמשתמש הרשאת GPS בזמן ריצה, מציג את הנקודה הכחולה שלו על המפה (`IsShowingUser`), ממקד את המפה עליו, ומחשב איזו תחנת קפה היא הקרובה ביותר:
 
-![תצוגת מסך שלב 4 - UserLocationPage](../../Learning/Images/UserLocationPage-overview.png)
+![תצוגת מסך שלב 4 (צילום חי מאימולטור Android) - UserLocationPage](../../Learning/Images/UserLocationPage-live.png)
 
 ---
 

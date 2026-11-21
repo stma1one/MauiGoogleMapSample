@@ -11,7 +11,9 @@
 
 לאחר שבשלב 1 הגדרנו את חבילת `Microsoft.Maui.Controls.Maps`, את `.UseMauiMaps()` ואת הרשאות Android, כעת נבנה צעד אחר צעד את מסך **`MapDisplayPage`** שמציג מפה חיה, כפתורים להחלפת סוג המפה (`Street`, `Satellite`, `Hybrid`), כפתורי זום (`+` / `-`) ובחירה בין 3 מוקדי קפה בישראל:
 
-![תצוגת מסך שלב 2 - MapDisplayPage](../../Learning/Images/MapDisplayPage-overview.png)
+![תצוגת מסך שלב 2 (צילום חי מאימולטור Android) - MapDisplayPage](../../Learning/Images/MapDisplayPage-live.png)
+
+> **שימו לב:** בצילום המסך החי המפה מופיעה ברקע בז' עם לוגו Google מכיוון שהפרויקט רץ עם מפתח ה-Placeholder (`YOUR_GOOGLE_MAPS_API_KEY_HERE`). מיד לאחר שתגדירו מפתח אמיתי בקובץ המקומי `Secrets.props` (ראו מדריך `01b`), אריחי המפה ייטענו במלואם!
 
 > **הערת פלטפורמה:** פקד המפות המובנה של .NET MAUI מציג מפה חיה ב-**Android**, **iOS** ו-**Mac Catalyst** (לא ב-Windows Desktop). את הלוגיקה נבדוק באמצעות בדיקות היחידה ב-`MauiGoogleMapSample.Tests`.
 

@@ -4,7 +4,7 @@
 
 ## 1. תצוגת המסך (Android Mockup)
 
-![מסך שלב 4 - מיקום GPS](../Images/UserLocationPage-overview.png)
+![מסך שלב 4 - מיקום GPS (צילום חי מ-DevFlow)](../Images/UserLocationPage-live.png)
 
 ## 2. רכיבי השלב
 * **`Services/ILocationService.cs` ו-`LocationService.cs`** — בקשת `Permissions.LocationWhenInUse`, קריאת `Geolocation.Default.GetLocationAsync`, וחישוב מרחקים (`Location.CalculateDistance`).

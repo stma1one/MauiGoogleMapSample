@@ -4,7 +4,7 @@
 
 ## 1. תצוגת המסך (Android Mockup)
 
-![מסך שלב 1 - הגדרות והרשאות](../Images/MainPage-overview.png)
+![מסך שלב 1 - הגדרות והרשאות (צילום חי מ-DevFlow)](../Images/MainPage-live.png)
 
 ## 2. רכיבי התשתית שהוקמו
 
