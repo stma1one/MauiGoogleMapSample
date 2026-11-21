@@ -9,9 +9,11 @@
 
 ## 1. מה אנחנו בונים בשלב הזה? (תצוגת המסך)
 
-בשלב זה נבנה את מסך **`CoffeePinsPage`** שמציג תחנות קפה על המפה כסיכות (`Pins`), מאפשר לסנן אותן בזמן אמת משורת חיפוש, ומגיב ללחיצה על סיכה או על בועת המידע שלה:
+בשלב זה נבנה צעד אחר צעד את מסך **`CoffeePinsPage`** שמציג 4 תחנות קפה על המפה כסיכות (`Pins`), מאפשר לסנן אותן בזמן אמת משורת חיפוש, ומגיב ללחיצה על הסיכה (`MarkerClicked`) או על בועת המידע שלה (`InfoWindowClicked`):
 
 ![תצוגת מסך שלב 3 (צילום חי מאימולטור Android) - CoffeePinsPage](../../Learning/Images/CoffeePinsPage-live.png)
+
+> **שימו לב:** כמו בשלב 2, אריחי המפה והסיכות הגרפיות יוצגו במלואם ברגע שתגדירו מפתח Google Maps API אמיתי בקובץ המקומי `Secrets.props` (ראו מדריך `01b`).
 
 ---
 
@@ -19,22 +21,39 @@
 
 | רכיב | מאיפה הוא מגיע? | תפקיד |
 | :--- | :--- | :--- |
-| `<maps:Pin>` (`Location`, `Label`, `Address`, `Type`) | **מובנה ב-`Microsoft.Maui.Controls.Maps`** | סמן ("נעץ") המוצג על המפה ובועת המידע מעליו. |
-| `MarkerClicked` ו-`InfoWindowClicked` | **Events מובנים של `<maps:Pin>`!** | מופעלים אוטומטית כשהמשתמש לוחץ על הסיכה או על הבועה. |
-| `DisplayAlertAsync(...)` | **מתודה מובנית ב-`ContentPage` (.NET 10 MAUI)** | מציגה חלון התראה אסינכרוני למשתמש. |
-| `CoffeeStation`, `CoffeeStationService`, `CoffeePinsViewModel` | **מחלקות שיצרנו בעצמנו** | נתוני תחנות הקפה, הסינון, וניהול הסיכה הנבחרת. |
+| `<maps:Pin>` (`Location`, `Label`, `Address`, `Type`) | **מובנה ב-`Microsoft.Maui.Controls.Maps`** | סמן ("נעץ") המוצג על המפה ובועת המידע שנפתחת מעליו. |
+| `MarkerClicked` ו-`InfoWindowClicked` | **Events מובנים של `<maps:Pin>`** | מופעלים אוטומטית כשהמשתמש לוחץ על הסיכה עצמה או על הבועה שמעליה. |
+| `DisplayAlertAsync(...)` | **מתודה מובנית ב-`ContentPage` (.NET 10 MAUI)** | מציגה חלון התראה אסינכרוני למשתמש (מחליפה את `DisplayAlert` המיושן). |
+| `Dispatcher.Dispatch(...)` | **מובנה ב-`ContentPage` (.NET MAUI)** | מתזמן את מיקוד המפה בבטחה על ה-UI Thread. |
+| `CoffeeStation` (`Models/CoffeeStation.cs`) | **מחלקה שיצרנו בעצמנו** | מודל נתונים לתחנת קפה אחת. |
+| `ICoffeeStationService` / `CoffeeStationService` | **מחלקה שיצרנו בעצמנו (`Services/`)** | מאגר תחנות הקפה ומתודת הסינון לפי חיפוש. |
+| `CoffeePinsViewModel` (`ViewModels/CoffeePinsViewModel.cs`) | **מחלקה שיצרנו בעצמנו** | מנהלת את רשימת התחנות, החיפוש, הסינון ופס המידע. |
 
 ---
 
-## 3. שלב א' — מודל תחנת קפה (`Models/CoffeeStation.cs`)
+## 3. שלב א' — בניית המודל (`Models`) ושירות התחנות (`Services`)
 
-שימו לב למאפיין המחושב `Location` — הוא ממיר את `Latitude` ו-`Longitude` לאובייקט `Location` שפקד ה-`<maps:Pin>` מצפה לקבל:
+### 3.1 המודל: `Models/CoffeeStation.cs`
+כל מופע של `CoffeeStation` מייצג תחנת קפה אחת שתוצג כסיכה (`Pin`) על המפה:
+
+| מאפיין (`Property`) | טיפוס | הסבר ושימוש |
+| :--- | :--- | :--- |
+| `Id` | `string` | מזהה ייחודי של תחנת הקפה (למשל `"tlv-1"`). |
+| `Name` | `string` | שם תחנת הקפה — יוצג ככותרת הסיכה (`Pin.Label`). |
+| `Address` | `string` | הכתובת הפיזית — תוצג כשורת המשנה בבועה (`Pin.Address`). |
+| `Specialty` | `string` | התמחות הקפה (למשל `"אספרסו וקולד ברו"`) — משמשת לסינון ולפס המידע. |
+| `Rating` | `double` | דירוג כוכבים (למשל `4.8`). |
+| `Latitude` / `Longitude` | `double` | קואורדינטות התחנה על המפה. |
+| `Location` | `Location` | **מאפיין מחושב** שמחזיר אובייקט `Location` מוכן ל-`Pin.Location`. |
 
 ```csharp
 using Microsoft.Maui.Devices.Sensors;
 
 namespace MauiGoogleMapSample.Models;
 
+/// <summary>
+/// מייצג תחנת קפה בודדת שמוצגת כסיכה (Pin) על המפה.
+/// </summary>
 public class CoffeeStation
 {
     public string Id { get; set; } = string.Empty;
@@ -45,44 +64,121 @@ public class CoffeeStation
     public double Latitude { get; set; }
     public double Longitude { get; set; }
 
-    // מאפיין מחושב (ראו הסבר על התחביר => בתיבה מתחת לקוד)
+    // מאפיין מחושב לקריאה בלבד (ראו הסבר על התחביר => בתיבה מתחת לקוד)
     public Location Location => new Location(Latitude, Longitude);
 }
 ```
 
 <div class="alert-important">
 <strong>💡 תחביר C# למתחילים — מה זה <code>=&gt;</code> במאפיין?</strong><br/>
-השורה <code>public Location Location =&gt; new Location(Latitude, Longitude);</code> היא קיצור של מאפיין לקריאה בלבד (<code>get</code>):<br/>
+השורה <code>public Location Location =&gt; new Location(Latitude, Longitude);</code> נקראת <strong>Expression-Bodied Property</strong>.<br/>
+היא קיצור נקי של:<br/>
 <code>public Location Location { get { return new Location(Latitude, Longitude); } }</code>.
 </div>
 
----
+### 3.2 ממשק השירות (`Services/ICoffeeStationService.cs`) והמימוש (`Services/CoffeeStationService.cs`)
 
-## 4. שלב ב' — ממשק השירות וה-ViewModel (`CoffeePinsViewModel.cs`)
-
-### ממשק השירות (`Services/ICoffeeStationService.cs`)
 ```csharp
-/// <summary>חוזה לשירות שמספק את תחנות הקפה ומאפשר סינון לפי מילת חיפוש.</summary>
+using MauiGoogleMapSample.Models;
+
+namespace MauiGoogleMapSample.Services;
+
+/// <summary>
+/// חוזה לשירות שמספק את רשימת תחנות הקפה ומאפשר לסנן אותן לפי מילת חיפוש.
+/// </summary>
 public interface ICoffeeStationService
 {
+    /// <summary>מחזיר את כל תחנות הקפה במאגר.</summary>
     IReadOnlyList<CoffeeStation> GetStations();
+
+    /// <summary>מחזיר רק תחנות ששמן, כתובתן או התמחותן מכילה את מילת החיפוש.</summary>
     IReadOnlyList<CoffeeStation> FilterStations(string? query);
 }
 ```
 
-### טבלת ה-Properties ב-`CoffeePinsViewModel` והשימוש בהם
-| מאפיין (`Property`) | טיפוס | תפקיד ושימוש ב-XAML / לוגיקה |
-| :--- | :--- | :--- |
-| `Stations` | `ObservableCollection<CoffeeStation>` | רשימת התחנות — מחובר ל-`<maps:Map ItemsSource="{Binding Stations}">`. |
-| `SearchQuery` | `string` | מילת החיפוש שהוקלדה ב-`Entry` — מפעילה `ClearFilterCommand.ChangeCanExecute()`. |
-| `SelectedStation` | `CoffeeStation?` | תחנת הקפה האחרונה שנלחצה על המפה. |
-| `SelectedStationBanner` | `string` | טקסט פס המידע בתחתית המסך (`Label Text="{Binding SelectedStationBanner}"`). |
-
-כאשר המשתמש לוחץ על "סנן", אנו מנקים וטוענים מחדש את `Stations` — ומכיוון שהמפה קשורה אליו ב-`ItemsSource`, הסיכות על המפה מתעדכנות אוטומטית!
+ובתוך `Services/CoffeeStationService.cs` נממש את הסינון בעזרת LINQ (`Where`):
 
 ```csharp
-public ObservableCollection<CoffeeStation> Stations { get; }
+public IReadOnlyList<CoffeeStation> FilterStations(string? query)
+{
+    // אם שורת החיפוש ריקה או מכילה רווחים בלבד — מחזירים את כל התחנות
+    if (string.IsNullOrWhiteSpace(query))
+    {
+        return _stations.AsReadOnly();
+    }
 
+    string trimmed = query.Trim();
+
+    // LINQ Where: עובר על כל תחנה (s) ומשאיר רק את אלו שמתאימות לחיפוש (ללא תלות באותיות גדולות/קטנות)
+    return _stations
+        .Where(s =>
+            s.Name.Contains(trimmed, StringComparison.OrdinalIgnoreCase) ||
+            s.Address.Contains(trimmed, StringComparison.OrdinalIgnoreCase) ||
+            s.Specialty.Contains(trimmed, StringComparison.OrdinalIgnoreCase))
+        .ToList();
+}
+```
+
+---
+
+## 4. שלב ב' — בניית ה-ViewModel שלב אחר שלב (`ViewModels/CoffeePinsViewModel.cs`)
+
+### צעד 1: הגדרת המחלקה והבנאי (`Constructor`)
+ה-ViewModel יורש מ-`BaseViewModel`, מקבל `ICoffeeStationService` ב-DI, טוען את כל תחנות הקפה לתוך `ObservableCollection<CoffeeStation>` ומאתחל את הפקודות:
+
+```csharp
+public class CoffeePinsViewModel : BaseViewModel
+{
+    private readonly ICoffeeStationService _stationService;
+    private string _searchQuery = string.Empty;
+    private CoffeeStation? _selectedStation;
+    private string _selectedStationBanner = "לחצו על סיכה במפה כדי לראות פרטי תחנת קפה";
+
+    public CoffeePinsViewModel(ICoffeeStationService stationService)
+    {
+        _stationService = stationService;
+        Title = "CoffeeMap — שלב 3: סיכות (Pins)";
+
+        Stations = new ObservableCollection<CoffeeStation>(_stationService.GetStations());
+
+        _filterCommand = new Command(ExecuteFilter);
+        _clearFilterCommand = new Command(ExecuteClearFilter, CanExecuteClearFilter);
+        _selectStationByNameCommand = new Command<string>(ExecuteSelectStationByName);
+    }
+}
+```
+
+### צעד 2: טבלת כל ה-Properties ב-`CoffeePinsViewModel` והשימוש בהם
+
+| מאפיין (`Property`) | טיפוס | תפקיד ושימוש ב-XAML / לוגיקה |
+| :--- | :--- | :--- |
+| `Title` (מורש מ-`BaseViewModel`) | `string` | כותרת הדף בסרגל העליון. |
+| `Stations` | `ObservableCollection<CoffeeStation>` | רשימת התחנות — מחובר ל-`<maps:Map ItemsSource="{Binding Stations}">`. |
+| `SearchQuery` | `string` | טקסט החיפוש מה-`Entry` — מפעיל `ClearFilterCommand.ChangeCanExecute()` כשהטקסט משתנה. |
+| `SelectedStation` | `CoffeeStation?` | תחנת הקפה האחרונה שנבחרה בלחיצה על סיכה (`?` = יכול להיות `null` בהתחלה). |
+| `SelectedStationBanner` | `string` | פס המידע בתחתית המסך (`Label Text="{Binding SelectedStationBanner}"`). |
+
+```csharp
+public string SearchQuery
+{
+    get => _searchQuery;
+    set
+    {
+        if (_searchQuery == value) return;
+        _searchQuery = value;
+        OnPropertyChanged();
+        // מעדכן את כפתור "נקה" — פעיל רק כשיש טקסט בשדה החיפוש!
+        _clearFilterCommand.ChangeCanExecute();
+    }
+}
+```
+
+### צעד 3: הפקודות (`FilterCommand`, `ClearFilterCommand`, `SelectStationByNameCommand`)
+* **`ExecuteFilter()`**: מנקה את `Stations` ומכניס אליו רק את תוצאות הסינון — ומכיוון ש-`Stations` הוא `ObservableCollection`, **הסיכות על המפה מתעדכנות אוטומטית!**
+* **`CanExecuteClearFilter()`**: מחזיר `!string.IsNullOrWhiteSpace(SearchQuery)` (כך כפתור `"נקה"` מושבת אוטומטית כשאין חיפוש).
+* **`ExecuteSelectStationByName(string? stationName)`**: מאתר את התחנה לפי השם שנלחץ בסיכה ומעדכן את `SelectedStation`.
+
+```csharp
 private void ExecuteFilter()
 {
     IReadOnlyList<CoffeeStation> filtered = _stationService.FilterStations(SearchQuery);
@@ -91,49 +187,92 @@ private void ExecuteFilter()
     {
         Stations.Add(station);
     }
-}
 
-private void ExecuteSelectStationByName(string? stationName)
+    // אופרטור תנאי מקוצר (? :): אם לא נמצאו תוצאות הצג הודעה מתאימה, אחרת הצג את הכמות
+    SelectedStationBanner = filtered.Count == 0
+        ? "לא נמצאו תחנות קפה התואמות לחיפוש."
+        : $"נמצאו {filtered.Count} תחנות קפה על המפה.";
+}
+```
+
+### צעד 4: חישוב המיקוד הראשוני (`GetInitialMapSpan`)
+```csharp
+public MapSpan GetInitialMapSpan()
 {
-    CoffeeStation? found = Stations.FirstOrDefault(s =>
-        string.Equals(s.Name, stationName, StringComparison.OrdinalIgnoreCase));
-    if (found is not null)
-    {
-        SelectedStation = found;
-    }
+    // FirstOrDefault מחזיר את התחנה הראשונה או null אם הרשימה ריקה
+    CoffeeStation? first = Stations.FirstOrDefault();
+    Location center = first is not null ? first.Location : new Location(32.0636, 34.7731);
+    return MapSpan.FromCenterAndRadius(center, Distance.FromKilometers(3.0));
 }
 ```
 
 ---
 
-## 5. שלב ג' — קישור הסיכות ב-XAML (`Views/CoffeePinsPage.xaml`)
+## 5. שלב ג' — בניית ה-XAML שלב אחר שלב (`Views/CoffeePinsPage.xaml`)
 
-במקום לולאת `foreach` ידנית בקוד, מחברים את המפה ל-`ItemsSource="{Binding Stations}"` ומגדירים תבנית `DataTemplate` עם `<maps:Pin>` ושני ה-Events המובנים `MarkerClicked` ו-`InfoWindowClicked`:
+### צעד 1: הגדרת כותרת ה-`ContentPage` ומרחבי השמות (`xmlns`)
+```xml
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
++            xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
++            xmlns:models="clr-namespace:MauiGoogleMapSample.Models"
++            xmlns:vm="clr-namespace:MauiGoogleMapSample.ViewModels"
+             x:Class="MauiGoogleMapSample.Views.CoffeePinsPage"
++            x:DataType="vm:CoffeePinsViewModel"
++            FlowDirection="RightToLeft"
+             Title="{Binding Title}">
+```
+
+### צעד 2: חלוקת המסך ל-3 שורות (`Grid`) ושורת החיפוש (`Row 0`)
+```xml
+<Grid RowDefinitions="Auto,*,Auto" RowSpacing="8" Padding="12">
+    <!-- Row 0: תיבת חיפוש + כפתורי סנן ונקה -->
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+        <Entry Grid.Column="0" Placeholder="חפש תחנת קפה (למשל: אספרסו, שנקין)..." Text="{Binding SearchQuery}" />
+        <Button Grid.Column="1" Text="סנן" Command="{Binding FilterCommand}" />
+        <Button Grid.Column="2" Text="נקה" Command="{Binding ClearFilterCommand}" BackgroundColor="{StaticResource Gray500}" />
+    </Grid>
+```
+
+### צעד 3: קישור הסיכות (`ItemsSource` + `ItemTemplate`) ב-`Row 1` ופס מידע ב-`Row 2`
+במקום לכתוב לולאת `foreach` ידנית ב-C#, קושרים את `ItemsSource` של המפה אל `Stations`, ובתוך `DataTemplate` מגדירים איך כל `CoffeeStation` הופך ל-`<maps:Pin>`:
 
 ```xml
-<maps:Map x:Name="PinsMapControl"
-          Grid.Row="1"
-          ItemsSource="{Binding Stations}"
-          IsScrollEnabled="True"
-          IsZoomEnabled="True">
-    <maps:Map.ItemTemplate>
-        <DataTemplate x:DataType="models:CoffeeStation">
-            <maps:Pin Location="{Binding Location}"
-                      Label="{Binding Name}"
-                      Address="{Binding Address}"
-                      Type="Place"
-                      MarkerClicked="OnPinMarkerClicked"
-                      InfoWindowClicked="OnPinInfoWindowClicked" />
-        </DataTemplate>
-    </maps:Map.ItemTemplate>
-</maps:Map>
+    <!-- Row 1: מפה עם סיכות קשורות ל-ObservableCollection -->
+    <Border Grid.Row="1" StrokeShape="RoundRectangle 12" Stroke="{StaticResource Gray300}">
+        <maps:Map x:Name="PinsMapControl" ItemsSource="{Binding Stations}" IsScrollEnabled="True" IsZoomEnabled="True">
+            <maps:Map.ItemTemplate>
+                <DataTemplate x:DataType="models:CoffeeStation">
+                    <maps:Pin Location="{Binding Location}"
+                              Label="{Binding Name}"
+                              Address="{Binding Address}"
+                              Type="Place"
+                              MarkerClicked="OnPinMarkerClicked"
+                              InfoWindowClicked="OnPinInfoWindowClicked" />
+                </DataTemplate>
+            </maps:Map.ItemTemplate>
+        </maps:Map>
+    </Border>
+
+    <!-- Row 2: פס המידע על הסיכה הנבחרת -->
+    <Border Grid.Row="2" StrokeShape="RoundRectangle 8" Padding="12" BackgroundColor="{StaticResource Gray100}">
+        <Label Text="{Binding SelectedStationBanner}" FontSize="13" FontAttributes="Bold" />
+    </Border>
+</Grid>
 ```
 
 ---
 
-## 6. שלב ד' — טיפול באירועי לחיצה ומיקוד ב-`Views/CoffeePinsPage.xaml.cs`
+## 6. שלב ד' — בניית ה-Code-Behind שלב אחר שלב (`Views/CoffeePinsPage.xaml.cs`)
 
-כאן נמצאים שני ה-Event Handlers של ה-`Pin` (`OnPinMarkerClicked` ו-`OnPinInfoWindowClicked`) והמיקוד הראשוני ב-`OnAppearing()`:
+### פירוט כל הפעולות ב-`CoffeePinsPage.xaml.cs`:
+
+| פעולה (`Method`) | מתי היא מופעלת? | מה היא עושה ולמה היא חשובה? |
+| :--- | :--- | :--- |
+| `CoffeePinsPage(CoffeePinsViewModel viewModel)` | בעת יצירת הדף (DI) | טוענת את ה-XAML ומחברת את ה-ViewModel ל-`BindingContext`. |
+| `OnAppearing()` | כשהמסך עולה | ממקדת את המפה על אזור תחנות הקפה בצורה בטוחה דרך `Dispatcher.Dispatch`. |
+| `OnPinMarkerClicked(object? sender, PinClickedEventArgs e)` | בלחיצה על **הסיכה עצמה** | מזהה את ה-`Pin` שנלחץ ומפעילה את `SelectStationByNameCommand` ב-ViewModel כדי לעדכן את פס המידע. |
+| `OnPinInfoWindowClicked(object? sender, PinClickedEventArgs e)` | בלחיצה על **בועת המידע** מעל הסיכה | מעדכנת את התחנה הנבחרת ומציגה חלון פרטים מלא באמצעות `await DisplayAlertAsync(...)`. |
 
 ```csharp
 using MauiGoogleMapSample.ViewModels;
@@ -145,6 +284,7 @@ public partial class CoffeePinsPage : ContentPage
 {
     private readonly CoffeePinsViewModel _viewModel;
 
+    /// <summary>בנאי הדף: מקבל את ה-ViewModel מ-DI ומחבר ל-BindingContext.</summary>
     public CoffeePinsPage(CoffeePinsViewModel viewModel)
     {
         InitializeComponent();
@@ -152,16 +292,26 @@ public partial class CoffeePinsPage : ContentPage
         BindingContext = _viewModel;
     }
 
+    /// <summary>ממקד את המפה על תחנות הקפה בבטחה על ה-UI Thread בעליית המסך.</summary>
     protected override void OnAppearing()
     {
         base.OnAppearing();
         Dispatcher.Dispatch(() =>
         {
-            PinsMapControl?.MoveToRegion(_viewModel.GetInitialMapSpan());
+            try
+            {
+                PinsMapControl?.MoveToRegion(_viewModel.GetInitialMapSpan());
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CoffeeMap] MoveToRegion skipped: {ex.Message}");
+            }
         });
     }
 
-    // לחיצה על הסיכה עצמה -> if (sender is Pin pin) בודק אם sender הוא מסוג Pin ושומר אותו במשתנה pin
+    /// <summary>
+    /// מופעל בלחיצה על הסיכה עצמה (ראו הסבר על "sender is Pin pin" בתיבה מתחת לקוד).
+    /// </summary>
     private void OnPinMarkerClicked(object? sender, PinClickedEventArgs e)
     {
         if (sender is Pin pin)
@@ -170,7 +320,9 @@ public partial class CoffeePinsPage : ContentPage
         }
     }
 
-    // לחיצה על הבועה שמעל הסיכה -> מציגה חלון פרטים מלא (DisplayAlertAsync)
+    /// <summary>
+    /// מופעל בלחיצה על בועת המידע (Callout) שמעל הסיכה — פותח חלון פרטים אסינכרוני.
+    /// </summary>
     private async void OnPinInfoWindowClicked(object? sender, PinClickedEventArgs e)
     {
         if (sender is Pin pin)
@@ -185,10 +337,19 @@ public partial class CoffeePinsPage : ContentPage
 }
 ```
 
+<div class="alert-important">
+<strong>💡 תחביר C# למתחילים — מה זה <code>if (sender is Pin pin)</code>?</strong><br/>
+באירועי UI, הפרמטר <code>sender</code> מגיע מטיפוס כללי <code>object?</code> (הפקד שלחצו עליו).<br/>
+התנאי <code>if (sender is Pin pin)</code> (שנקרא <strong>Pattern Matching</strong>) עושה שתי פעולות יחד:<br/>
+1. בודק אם <code>sender</code> הוא באמת אובייקט מסוג <code>Pin</code>.<br/>
+2. אם כן — ממיר ושומר אותו אוטומטית במשתנה חדש בשם <code>pin</code> כך שנוכל לקרוא מיד ל-<code>pin.Label</code> ול-<code>pin.Address</code>!
+</div>
+
 ---
 
 ## 7. שלב ה' — מה מוסיפים ב-`MauiProgram.cs` וב-`AppShell.xaml`?
 
+### בתוך `MauiProgram.cs`:
 ```csharp
 private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
 {
@@ -215,7 +376,7 @@ private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
 }
 ```
 
-### בתוך `AppShell.xaml` (הוספת שלב 3 לתפריט ה-Flyout):
+### בתוך `AppShell.xaml`:
 ```xml
     <FlyoutItem Title="שלב 2: תצוגת מפה וסוגים" Icon="icon_map.png">
         <ShellContent Title="שלב 2: תצוגת מפה" ContentTemplate="{DataTemplate views:MapDisplayPage}" Route="MapDisplayPage" />
