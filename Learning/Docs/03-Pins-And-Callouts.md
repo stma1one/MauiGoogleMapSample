@@ -49,6 +49,12 @@ public class CoffeeStation
 }
 ```
 
+<div class="alert-important">
+<strong>💡 תחביר C# למתחילים — מה זה <code>=&gt;</code> במאפיין?</strong><br/>
+השורה <code>public Location Location =&gt; new Location(Latitude, Longitude);</code> היא קיצור של מאפיין לקריאה בלבד (<code>get</code>):<br/>
+<code>public Location Location { get { return new Location(Latitude, Longitude); } }</code>.
+</div>
+
 ---
 
 ## 4. שלב ב' — ממשק השירות וה-ViewModel (`CoffeePinsViewModel.cs`)
@@ -154,7 +160,7 @@ public partial class CoffeePinsPage : ContentPage
         });
     }
 
-    // לחיצה על הסיכה עצמה -> מעדכנת את פס המידע דרך פקודה ב-ViewModel
+    // לחיצה על הסיכה עצמה -> if (sender is Pin pin) בודק אם sender הוא מסוג Pin ושומר אותו במשתנה pin
     private void OnPinMarkerClicked(object? sender, PinClickedEventArgs e)
     {
         if (sender is Pin pin)
@@ -206,6 +212,16 @@ private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
 +   builder.Services.AddTransient<CoffeePinsPage>();
     return builder;
 }
+```
+
+### בתוך `AppShell.xaml` (הוספת שלב 3 לתפריט ה-Flyout):
+```xml
+    <FlyoutItem Title="שלב 2: תצוגת מפה וסוגים" Icon="icon_map.png">
+        <ShellContent Title="שלב 2: תצוגת מפה" ContentTemplate="{DataTemplate views:MapDisplayPage}" Route="MapDisplayPage" />
+    </FlyoutItem>
++   <FlyoutItem Title="שלב 3: סיכות (Pins)" Icon="icon_pins.png">
++       <ShellContent Title="שלב 3: סיכות" ContentTemplate="{DataTemplate views:CoffeePinsPage}" Route="CoffeePinsPage" />
++   </FlyoutItem>
 ```
 
 ---

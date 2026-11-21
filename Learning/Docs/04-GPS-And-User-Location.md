@@ -42,6 +42,12 @@ public interface ILocationService
 }
 ```
 
+<div class="alert-important">
+<strong>💡 תחביר C# למתחילים — מה זה <code>record</code> ומה זה Tuple?</strong><br/>
+• <strong><code>public record LocationFetchResult(...)</code></strong> — קיצור מודרני למחלקת נתונים עם בנאי ו-Properties מוכנים אוטומטית.<br/>
+• <strong><code>(CoffeeStation? Station, double DistanceKm)</code></strong> — נקרא <strong>Tuple</strong>, ומאפשר למתודה אחת להחזיר <strong>שני ערכים יחד</strong> (גם את התחנה הקרובה וגם את המרחק אליה) בלי ליצור מחלקה נפרדת.
+</div>
+
 בשלב 1 הצהרנו ב-`AndroidManifest.xml` על הרשאות מיקום, אבל באנדרואיד חובה גם לבקש **הרשאה בזמן ריצה** לפני קריאת ה-GPS:
 
 ```csharp
@@ -195,6 +201,16 @@ private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
 +   builder.Services.AddTransient<UserLocationPage>();
     return builder;
 }
+```
+
+### בתוך `AppShell.xaml` (הוספת שלב 4 לתפריט ה-Flyout):
+```xml
+    <FlyoutItem Title="שלב 3: סיכות (Pins)" Icon="icon_pins.png">
+        <ShellContent Title="שלב 3: סיכות" ContentTemplate="{DataTemplate views:CoffeePinsPage}" Route="CoffeePinsPage" />
+    </FlyoutItem>
++   <FlyoutItem Title="שלב 4: מיקום GPS" Icon="icon_gps.png">
++       <ShellContent Title="שלב 4: מיקום GPS" ContentTemplate="{DataTemplate views:UserLocationPage}" Route="UserLocationPage" />
++   </FlyoutItem>
 ```
 
 ---

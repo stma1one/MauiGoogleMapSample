@@ -135,6 +135,15 @@ public class CoffeeRegionService : ICoffeeRegionService
 }
 ```
 
+<div class="alert-important">
+<strong>💡 תחביר C# למתחילים — מה זה האופרטור <code>??</code>?</strong><br/>
+האופרטור <code>??</code> נקרא <strong>Null-Coalescing Operator</strong> (אופרטור ברירת מחדל ל-<code>null</code>).<br/>
+השורה <code>double radiusKm = overrideRadiusKm ?? region.DefaultRadiusKm;</code> שקולה בדיוק ל:<br/>
+<code>double radiusKm;</code><br/>
+<code>if (overrideRadiusKm != null) radiusKm = overrideRadiusKm.Value; else radiusKm = region.DefaultRadiusKm;</code><br/>
+כלומר: <em>"אם קיבלנו רדיוס מותאם (<code>overrideRadiusKm</code>) — השתמש בו; אחרת (אם הוא <code>null</code>) — קח את ברירת המחדל של האזור."</em>
+</div>
+
 ---
 
 ## 4. שלב ב' — בניית ה-ViewModel שלב אחר שלב (`ViewModels/MapDisplayViewModel.cs`)
@@ -253,7 +262,7 @@ public MapSpan GetCurrentMapSpan()
 private void RequestMapMove()
 {
     MapSpan span = GetCurrentMapSpan();
-    // מפעיל את האירוע — אם ה-View נרשם אליו, הוא יקבל את ה-span ויזיז את המפה
+    // האופרטור ?. אומר: הפעל Invoke רק אם מישהו נרשם לאירוע (לא null) — מונע NullReferenceException
     MoveToRegionRequested?.Invoke(span);
 }
 ```
@@ -277,12 +286,12 @@ private void RequestMapMove()
 ```xml
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
-             xmlns:models="clr-namespace:MauiGoogleMapSample.Models"
-             xmlns:vm="clr-namespace:MauiGoogleMapSample.ViewModels"
++            xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
++            xmlns:models="clr-namespace:MauiGoogleMapSample.Models"
++            xmlns:vm="clr-namespace:MauiGoogleMapSample.ViewModels"
              x:Class="MauiGoogleMapSample.Views.MapDisplayPage"
-             x:DataType="vm:MapDisplayViewModel"
-             FlowDirection="RightToLeft"
++            x:DataType="vm:MapDisplayViewModel"
++            FlowDirection="RightToLeft"
              Title="{Binding Title}">
 ```
 

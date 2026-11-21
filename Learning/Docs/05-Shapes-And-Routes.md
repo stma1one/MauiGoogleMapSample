@@ -56,6 +56,7 @@ public Polyline BuildCoffeeTourPolyline(IEnumerable<CoffeeStation> stations)
 
 public Circle BuildDeliveryZoneCircle(Location center, double radiusMeters)
 {
+    // אופרטור תנאי מקוצר (? :): אם radiusMeters קטן מ-50 השתמש ב-50, אחרת השתמש ב-radiusMeters
     double safeRadius = radiusMeters < 50 ? 50 : radiusMeters;
     return new Circle
     {
@@ -173,6 +174,16 @@ private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
 +   builder.Services.AddTransient<CoffeeRoutesPage>();
     return builder;
 }
+```
+
+### בתוך `AppShell.xaml` (הוספת שלב 5 לתפריט ה-Flyout):
+```xml
+    <FlyoutItem Title="שלב 4: מיקום GPS" Icon="icon_gps.png">
+        <ShellContent Title="שלב 4: מיקום GPS" ContentTemplate="{DataTemplate views:UserLocationPage}" Route="UserLocationPage" />
+    </FlyoutItem>
++   <FlyoutItem Title="שלב 5: מסלולים וצורות" Icon="icon_routes.png">
++       <ShellContent Title="שלב 5: מסלולים וצורות" ContentTemplate="{DataTemplate views:CoffeeRoutesPage}" Route="CoffeeRoutesPage" />
++   </FlyoutItem>
 ```
 
 ---
