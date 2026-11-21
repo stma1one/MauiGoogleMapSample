@@ -76,7 +76,14 @@ public class CoffeeStation
 <code>public Location Location { get { return new Location(Latitude, Longitude); } }</code>.
 </div>
 
-### 3.2 ממשק השירות (`Services/ICoffeeStationService.cs`) והמימוש (`Services/CoffeeStationService.cs`)
+### 3.2 הגדרת הממשק (`Interface`): `Services/ICoffeeStationService.cs`
+
+לפני שכותבים את המחלקה עצמה, מגדירים **ממשק (`interface`)** שקובע את ה"חוזה" של השירות — **אילו פעולות השירות מבטיח לספק**, בלי להתחייב *איך* הן ממומשות (היום מרשימה בזיכרון, ומחר אולי ממסד נתונים או שרת אינטרנט!).
+
+| פעולה בממשק | קלט ופלט | למה הפעולה הוגדרה בחוזה? |
+| :--- | :--- | :--- |
+| `GetStations()` | ללא קלט → `IReadOnlyList<CoffeeStation>` | מאפשרת ל-ViewModel לטעון את כל תחנות הקפה בעליית המסך (או בעת ניקוי סינון). |
+| `FilterStations(string? query)` | מילת חיפוש (אופציונלית) → `IReadOnlyList<CoffeeStation>` | מאפשרת לסנן תחנות לפי שם, כתובת או התמחות בלי שה-ViewModel יצטרך להכיר את לוגיקת החיפוש. |
 
 ```csharp
 using MauiGoogleMapSample.Models;
@@ -103,27 +110,56 @@ public interface ICoffeeStationService
 • כך אנו שומרים על עקרון ה<strong>כימוס (Encapsulation)</strong>: ה-ViewModel לא יכול למחוק או להשחית בטעות את המאגר הפנימי <code>_stations</code> של השירות — הוא מקבל רשימה לקריאה בלבד ומעתיק ממנה ל-<code>ObservableCollection</code> הפרטי שלו.
 </div>
 
-ובתוך `Services/CoffeeStationService.cs` נממש את הסינון בעזרת LINQ (`Where`):
+### 3.3 המחלקה המממשת את הממשק: `Services/CoffeeStationService.cs`
+
+כעת יוצרים קובץ ומחלקה נפרדים ש**מממשים את הממשק** (`public class CoffeeStationService : ICoffeeStationService`).  
+המחלקה מחזיקה רשימה פרטית `_stations` של 4 תחנות קפה בתל אביב ומממשת את **שתי הפעולות** שהוגדרו בממשק:
+
+1. **מימוש `GetStations()`** — מחזיר עטיפת קריאה-בלבד (`_stations.AsReadOnly()`) כדי להגן על הרשימה הפנימית משינוי חיצוני.
+2. **מימוש `FilterStations(string? query)`** — מנקה רווחים (`query.Trim()`) ומסנן עם LINQ `Where` לפי שם, כתובת או התמחות ללא תלות באותיות גדולות/קטנות (`StringComparison.OrdinalIgnoreCase`).
 
 ```csharp
-public IReadOnlyList<CoffeeStation> FilterStations(string? query)
+using MauiGoogleMapSample.Models;
+
+namespace MauiGoogleMapSample.Services;
+
+// תחילת המחלקה המממשת את הממשק ICoffeeStationService
+public class CoffeeStationService : ICoffeeStationService
 {
-    // אם שורת החיפוש ריקה או מכילה רווחים בלבד — מחזירים את כל התחנות
-    if (string.IsNullOrWhiteSpace(query))
+    private readonly List<CoffeeStation> _stations = new()
+    {
+        new CoffeeStation { Id = "tlv-1", Name = "קפה רוטשילד 45", Address = "שדרות רוטשילד 45, תל אביב", Specialty = "אספרסו וקולד ברו", Rating = 4.8, Latitude = 32.0636, Longitude = 34.7731 },
+        new CoffeeStation { Id = "tlv-2", Name = "קליית שנקין", Address = "רחוב שנקין 22, תל אביב", Specialty = "פילטר וקלייה מקומית", Rating = 4.6, Latitude = 32.0695, Longitude = 34.7720 },
+        new CoffeeStation { Id = "tlv-3", Name = "תחנת הקפה נווה צדק", Address = "רחוב שבזי 30, תל אביב", Specialty = "מאצ'ה וקפוצ'ינו שיבולת שועל", Rating = 4.4, Latitude = 32.0604, Longitude = 34.7652 },
+        new CoffeeStation { Id = "tlv-4", Name = "בוקר בנמל", Address = "האנגר 12, נמל תל אביב", Specialty = "אספרסו קלאסי ומאפים", Rating = 4.2, Latitude = 32.0965, Longitude = 34.7745 }
+    };
+
+    /// <summary>מימוש פעולה 1: מחזיר את כל 4 התחנות לקריאה בלבד.</summary>
+    public IReadOnlyList<CoffeeStation> GetStations()
     {
         return _stations.AsReadOnly();
     }
 
-    // מסיר רווחים מיותרים מההתחלה ומהסוף (ראו הסבר על Trim() בתיבה מתחת לקוד)
-    string trimmed = query.Trim();
+    /// <summary>מימוש פעולה 2: מסנן את התחנות לפי טקסט חיפוש.</summary>
+    public IReadOnlyList<CoffeeStation> FilterStations(string? query)
+    {
+        // אם שורת החיפוש ריקה או מכילה רווחים בלבד — מחזירים את כל התחנות
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return _stations.AsReadOnly();
+        }
 
-    // LINQ Where: משאיר רק תחנות שמתאימות לחיפוש (ראו הסבר על StringComparison בתיבה מתחת לקוד)
-    return _stations
-        .Where(s =>
-            s.Name.Contains(trimmed, StringComparison.OrdinalIgnoreCase) ||
-            s.Address.Contains(trimmed, StringComparison.OrdinalIgnoreCase) ||
-            s.Specialty.Contains(trimmed, StringComparison.OrdinalIgnoreCase))
-        .ToList();
+        // מסיר רווחים מיותרים מההתחלה ומהסוף (ראו הסבר על Trim() בתיבה מתחת לקוד)
+        string trimmed = query.Trim();
+
+        // LINQ Where: משאיר רק תחנות שמתאימות לחיפוש (ראו הסבר על StringComparison בתיבה מתחת לקוד)
+        return _stations
+            .Where(s =>
+                s.Name.Contains(trimmed, StringComparison.OrdinalIgnoreCase) ||
+                s.Address.Contains(trimmed, StringComparison.OrdinalIgnoreCase) ||
+                s.Specialty.Contains(trimmed, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
 }
 ```
 

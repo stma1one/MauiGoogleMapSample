@@ -27,11 +27,26 @@
 
 ---
 
-## 3. שלב א' — ממשק השירות ושירות המיקום (`Services/ILocationService.cs` ו-`LocationService.cs`)
+## 3. שלב א' — הגדרת הממשק (`ILocationService`) והמחלקה המממשת (`LocationService`)
 
-### ממשק השירות (`Services/ILocationService.cs`)
+### 3.1 הגדרת הממשק (`Interface`): `Services/ILocationService.cs`
+
+למה הגדרנו את הממשק `ILocationService` במקום לקרוא ל-`Geolocation` ישירות מתוך ה-ViewModel?  
+כי במחשב הפיתוח (ובבדיקות יחידה `xunit.v3`) **אין מקלט GPS אמיתי**! הפרדת החוזה לממשק מאפשרת לנו להריץ באפליקציה את `LocationService` האמיתי, ובבדיקות היחידה להזריק `FakeLocationService` שמדמה GPS תוך שנייה אחת.
+
+| פעולה בממשק | קלט ופלט | למה הפעולה הוגדרה בחוזה? |
+| :--- | :--- | :--- |
+| `GetCurrentLocationAsync()` | ללא קלט → `Task<LocationFetchResult>` | מבקשת הרשאת מיקום בזמן ריצה, קוראת את ה-GPS ומחזירה תוצאה מסודרת (הצלחה/דחייה/שגיאה). |
+| `CalculateDistanceKm(from, to)` | שתי נקודות `Location` → `double` | מחשבת מרחק אווירי בק"מ בין שתי נקודות גיאוגרפיות. |
+| `FindNearestStation(userLocation, stations)` | מיקום משתמש + רשימת תחנות → `(CoffeeStation?, double)` | סורקת את תחנות הקפה ומחזירה יחד (כ-Tuple) את התחנה הקרובה ביותר ואת המרחק אליה. |
+
 ```csharp
-// ראו הסבר על record ו-Tuple בתיבה מתחת לקוד
+using MauiGoogleMapSample.Models;
+using Microsoft.Maui.Devices.Sensors;
+
+namespace MauiGoogleMapSample.Services;
+
+// ראו הסבר על record ו-Tuple בסעיף 3.2 מתחת לקוד
 public record LocationFetchResult(bool IsSuccess, bool PermissionGranted, Location? Location, string Message);
 
 /// <summary>חוזה לעבודה עם הרשאות GPS, שליפת מיקום וחישוב מרחק לתחנה הקרובה.</summary>
@@ -48,7 +63,7 @@ public interface ILocationService
 הטיפוס <strong><code>(CoffeeStation? Station, double DistanceKm)</code></strong> נקרא <strong>Tuple</strong>, ומאפשר למתודה אחת להחזיר <strong>שני ערכים יחד</strong> (גם את התחנה הקרובה וגם את המרחק אליה) בלי ליצור מחלקה נפרדת.
 </div>
 
-### 3.1 מה זה `record`? השוואה מול `class`, יתרונות, חסרונות ומתי להשתמש בכל אחד
+### 3.2 מה זה `record`? השוואה מול `class`, יתרונות, חסרונות ומתי להשתמש בכל אחד
 
 השורה `public record LocationFetchResult(bool IsSuccess, bool PermissionGranted, Location? Location, string Message);` מגדירה **`record`** — טיפוס מודרני ב-C# המיועד לייצוג **חבילת נתונים בלתי-משתנה (Immutable Data)**, כמו תוצאת קריאה לשירות.  
 בשורה אחת זו, הקומפיילר מייצר עבורנו אוטומטית: בנאי, Properties לקריאה בלבד (`init`), השוואה לפי **ערך**, והדפסת `ToString()` קריאה לדיבאג.
@@ -72,34 +87,82 @@ public interface ILocationService
   * **בחרו `record`** עבור **תוצאות החזרה משירותים** (`LocationFetchResult`, `MapConfigCheckResult`) או נתוני קריאה בלבד.
   * **בחרו `class`** עבור **`ViewModels`** (`UserLocationViewModel`), **`Services`** (`LocationService`), ומודלים שמתעדכנים או נשמרים במסד נתונים.
 
-בשלב 1 הצהרנו ב-`AndroidManifest.xml` על הרשאות מיקום, אבל באנדרואיד חובה גם לבקש **הרשאה בזמן ריצה** לפני קריאת ה-GPS:
+### 3.3 המחלקה המממשת את הממשק: `Services/LocationService.cs`
+
+כעת יוצרים את המחלקה **`public class LocationService : ILocationService`** שמממשת את **3 הפעולות** שהוגדרו בממשק:
+
+1. **מימוש פעולה 1 — `GetCurrentLocationAsync()`:** בודקת ומבקשת הרשאת זמן ריצה (`Permissions.LocationWhenInUse`), קוראת ל-`Geolocation.Default.GetLocationAsync(...)` עם timeout של 10 שניות, ומחזירה `LocationFetchResult` בטוח (גם אם המשתמש דחה הרשאה או שהמכשיר לא תומך ב-GPS).
+2. **מימוש פעולה 2 — `CalculateDistanceKm(from, to)`:** עוטפת את `Location.CalculateDistance(..., DistanceUnits.Kilometers)` לחישוב המרחק האווירי בין שתי נקודות.
+3. **מימוש פעולה 3 — `FindNearestStation(userLocation, stations)`:** עוברת בלולאת `foreach` על כל תחנות הקפה, מחשבת לכל אחת מרחק, שומרת את התחנה בעלת המרחק הקטן ביותר (`minDistance`), ומחזירה Tuple של `(nearest, Math.Round(minDistance, 2))`.
 
 ```csharp
-public async Task<LocationFetchResult> GetCurrentLocationAsync()
+using MauiGoogleMapSample.Models;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Devices.Sensors;
+
+namespace MauiGoogleMapSample.Services;
+
+// תחילת המחלקה המממשת את הממשק ILocationService
+public class LocationService : ILocationService
 {
-    PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
-    if (status != PermissionStatus.Granted)
+    /// <summary>מימוש פעולה 1: בקשת הרשאת זמן ריצה ושליפת מיקום GPS נוכחי.</summary>
+    public async Task<LocationFetchResult> GetCurrentLocationAsync()
     {
-        status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+        try
+        {
+            PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+            }
+
+            if (status != PermissionStatus.Granted)
+            {
+                return new LocationFetchResult(false, false, null, "הרשאת מיקום נדחתה.");
+            }
+
+            var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
+            Location? location = await Geolocation.Default.GetLocationAsync(request);
+
+            if (location is null)
+            {
+                return new LocationFetchResult(false, true, null, "לא ניתן היה לאתר מיקום GPS כרגע.");
+            }
+
+            return new LocationFetchResult(true, true, location, $"מיקום נוכחי: {location.Latitude:0.0000}, {location.Longitude:0.0000}");
+        }
+        catch (Exception ex)
+        {
+            return new LocationFetchResult(false, false, null, $"שגיאה בקבלת מיקום: {ex.Message}");
+        }
     }
 
-    if (status != PermissionStatus.Granted)
+    /// <summary>מימוש פעולה 2: חישוב מרחק אווירי בקילומטרים בין שתי נקודות.</summary>
+    public double CalculateDistanceKm(Location from, Location to)
     {
-        return new LocationFetchResult(false, false, null, "הרשאת מיקום נדחתה.");
+        ArgumentNullException.ThrowIfNull(from);
+        ArgumentNullException.ThrowIfNull(to);
+        return Location.CalculateDistance(from, to, DistanceUnits.Kilometers);
     }
 
-    var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
-    Location? location = await Geolocation.Default.GetLocationAsync(request);
-    // ... מחזירים את המיקום שנמצא
-}
-```
+    /// <summary>מימוש פעולה 3: מוצא את תחנת הקפה הקרובה ביותר למיקום המשתמש.</summary>
+    public (CoffeeStation? Station, double DistanceKm) FindNearestStation(Location userLocation, IEnumerable<CoffeeStation> stations)
+    {
+        CoffeeStation? nearest = null;
+        double minDistance = double.MaxValue;
 
-ובאותה מחלקה (`Services/LocationService.cs`) מחשבים את התחנה הקרובה ביותר:
+        foreach (CoffeeStation station in stations)
+        {
+            double distance = CalculateDistanceKm(userLocation, station.Location);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                nearest = station;
+            }
+        }
 
-```csharp
-public double CalculateDistanceKm(Location from, Location to)
-{
-    return Location.CalculateDistance(from, to, DistanceUnits.Kilometers);
+        return nearest is null ? (null, 0) : (nearest, Math.Round(minDistance, 2));
+    }
 }
 ```
 
