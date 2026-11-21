@@ -203,30 +203,58 @@ private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
 </div>
 </div>
 
-### הסבר על קובץ אימות הקונפיגורציה (`Services/MapConfigurationValidator.cs`)
+### 6.1 הגדרת הממשק (`Interface`): `Services/IMapConfigurationValidator.cs`
 
-כדי לעזור לתלמידים ולמשתמש לזהות מיד האם מפתח ה-API בפורמט תקין, יצרנו את המחלקה `MapConfigurationValidator` ואת טיפוס התוצאה `MapConfigCheckResult(bool IsValid, string StatusTitle, string Details)`.
+לפני כתיבת המחלקה המממשת, מגדירים **ממשק (`interface`)** שקובע אילו פעולות ומאפיינים השירות מבטיח לספק — כך ה-ViewModel תלוי רק בחוזה (DI) ולא במימוש ספציפי:
 
-המתודה `ValidateApiKey(string? apiKey)` מבצעת **3 בדיקות מדורגות**:
-1. **מפתח ריק או רווחים (`string.IsNullOrWhiteSpace`):** מחזירה `IsValid = false` עם הכותרת `"מפתח API חסר"`.
-2. **עדיין מוגדר Placeholder (`YOUR_GOOGLE_MAPS_API_KEY_HERE`):** מחזירה `IsValid = false` ומזכירה שצריך להחליפו במפתח מ-Google Cloud Console.
-3. **אורך קצר מדי (`trimmed.Length < 20`):** מחזירה `IsValid = false` כי מפתחות Google אמיתיים ארוכים מ-20 תווים.
-4. **אחרת:** מחזירה `IsValid = true` (`"פורמט המפתח תקין"`).
+| חבר בממשק | קלט ופלט | למה הוגדר בחוזה? |
+| :--- | :--- | :--- |
+| `PlaceholderKey` | מאפיין לקריאה (`string`) | מחזיק את ערך ה-Placeholder הרשמי (`YOUR_GOOGLE_MAPS_API_KEY_HERE`) במקום אחד מרכזי. |
+| `ValidateApiKey(string? apiKey)` | מחרוזת מפתח → `MapConfigCheckResult` | מאמת את פורמט המפתח ומחזיר תוצאה מובנית (`IsValid`, כותרת והסבר). |
 
 ```csharp
-public MapConfigCheckResult ValidateApiKey(string? apiKey)
+namespace MauiGoogleMapSample.Services;
+
+public record MapConfigCheckResult(bool IsValid, string StatusTitle, string Details);
+
+/// <summary>חוזה לשירות שמאמת את תקינות פורמט ה-Google Maps API Key.</summary>
+public interface IMapConfigurationValidator
 {
-    if (string.IsNullOrWhiteSpace(apiKey))
-        return new MapConfigCheckResult(false, "מפתח API חסר", "...");
+    string PlaceholderKey { get; }
+    MapConfigCheckResult ValidateApiKey(string? apiKey);
+}
+```
 
-    string trimmed = apiKey.Trim();
-    if (string.Equals(trimmed, PlaceholderKey, StringComparison.OrdinalIgnoreCase))
-        return new MapConfigCheckResult(false, "מוגדר מפתח Placeholder", "...");
+### 6.2 המחלקה המממשת את הממשק: `Services/MapConfigurationValidator.cs`
 
-    if (trimmed.Length < 20)
-        return new MapConfigCheckResult(false, "פורמט מפתח קצר מדי", "...");
+כעת יוצרים את המחלקה **`public class MapConfigurationValidator : IMapConfigurationValidator`** שמממשת את שני חברי הממשק:
+1. **מימוש `PlaceholderKey`:** מחזיר `"YOUR_GOOGLE_MAPS_API_KEY_HERE"`.
+2. **מימוש `ValidateApiKey(string? apiKey)`:** מבצע 3 בדיקות מדורגות (ריק/רווחים → זהה ל-Placeholder → אורך קצר מ-20 תווים → תקין).
 
-    return new MapConfigCheckResult(true, "פורמט המפתח תקין", "...");
+```csharp
+namespace MauiGoogleMapSample.Services;
+
+// תחילת המחלקה המממשת את הממשק IMapConfigurationValidator
+public class MapConfigurationValidator : IMapConfigurationValidator
+{
+    /// <summary>מימוש 1: מחזיר את מחרוזת ה-Placeholder הרשמית של הפרויקט.</summary>
+    public string PlaceholderKey => "YOUR_GOOGLE_MAPS_API_KEY_HERE";
+
+    /// <summary>מימוש 2: בודק את המפתח ב-3 שלבים ומחזיר MapConfigCheckResult.</summary>
+    public MapConfigCheckResult ValidateApiKey(string? apiKey)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey))
+            return new MapConfigCheckResult(false, "מפתח API חסר", "...");
+
+        string trimmed = apiKey.Trim();
+        if (string.Equals(trimmed, PlaceholderKey, StringComparison.OrdinalIgnoreCase))
+            return new MapConfigCheckResult(false, "מוגדר מפתח Placeholder", "...");
+
+        if (trimmed.Length < 20)
+            return new MapConfigCheckResult(false, "פורמט מפתח קצר מדי", "...");
+
+        return new MapConfigCheckResult(true, "פורמט המפתח תקין", "...");
+    }
 }
 ```
 

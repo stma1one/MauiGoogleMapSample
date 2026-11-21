@@ -32,7 +32,16 @@
 
 ## 3. שלב א' — ממשק השירות ובניית הצורות (`Services`)
 
-### 3.1 ממשק השירות (`Services/ICoffeeRouteService.cs`)
+### 3.1 הגדרת הממשק (`Interface`): `Services/ICoffeeRouteService.cs`
+
+לפני מימוש השירות, מגדירים **ממשק (`interface`)** שקובע אילו פעולות גיאוגרפיות השירות מבטיח לספק (מאפשר הזרקת תלויות ב-DI ובדיקה מבודדת ב-Unit Tests):
+
+| פעולה בממשק | קלט ופלט | למה הפעולה הוגדרה בחוזה? |
+| :--- | :--- | :--- |
+| `BuildCoffeeTourPolyline(stations)` | אוסף תחנות קפה → `Polyline` | מפרידה את לוגיקת יצירת קו המסלול והעיצוב שלו מה-ViewModel. |
+| `BuildDeliveryZoneCircle(center, radiusMeters)` | נקודת מרכז + רדיוס במטרים → `Circle` | בונה עיגול אזור משלוחים עם הגנת רדיוס מינימלי וצבע שקוף אחיד. |
+| `CalculateTotalTourDistanceKm(stations)` | רשימת תחנות → `double` | מחשבת את אורך סיור הקפה המצטבר בק"מ לצורך תצוגה ובדיקות יחידה. |
+
 ```csharp
 using MauiGoogleMapSample.Models;
 using Microsoft.Maui.Controls.Maps;
@@ -56,11 +65,18 @@ public interface ICoffeeRouteService
 }
 ```
 
-### 3.2 מימוש השירות (`Services/CoffeeRouteService.cs`)
+### 3.2 המחלקה המממשת את הממשק: `Services/CoffeeRouteService.cs`
+
+כעת יוצרים את המחלקה **`public class CoffeeRouteService : ICoffeeRouteService`** שמממשת את **3 הפעולות** של הממשק:
+1. **מימוש פעולה 1 — `BuildCoffeeTourPolyline(...)`:** יוצרת `Polyline` בצבע חום קפה (`#6D4C41`) ומוסיפה את קואורדינטות כל התחנות לאוסף `Geopath`.
+2. **מימוש פעולה 2 — `BuildDeliveryZoneCircle(...)`:** מגנה מפני רדיוס קטן מ-50 מטר ויוצרת `Circle` עם מילוי כחול שקוף למחצה (`#332563EB`).
+3. **מימוש פעולה 3 — `CalculateTotalTourDistanceKm(...)`:** עוברת בלולאת `for` על כל זוג תחנות סמוכות, סוכמת את המרחקים ומעגלת ל-2 ספרות אחרי הנקודה.
+
 ```csharp
+// תחילת המחלקה המממשת את הממשק ICoffeeRouteService
 public class CoffeeRouteService : ICoffeeRouteService
 {
-    /// <summary>מחבר את קואורדינטות התחנות לתוך אוסף הנקודות Geopath של ה-Polyline.</summary>
+    /// <summary>מימוש פעולה 1: מחבר את קואורדינטות התחנות לתוך Geopath של ה-Polyline.</summary>
     public Polyline BuildCoffeeTourPolyline(IEnumerable<CoffeeStation> stations)
     {
         ArgumentNullException.ThrowIfNull(stations);
@@ -78,7 +94,7 @@ public class CoffeeRouteService : ICoffeeRouteService
         return polyline;
     }
 
-    /// <summary>יוצר עיגול אזור משלוחים עם הגנה מפני רדיוס קטן מ-50 מטר.</summary>
+    /// <summary>מימוש פעולה 2: יוצר עיגול אזור משלוחים עם הגנה מפני רדיוס קטן מ-50 מטר.</summary>
     public Circle BuildDeliveryZoneCircle(Location center, double radiusMeters)
     {
         ArgumentNullException.ThrowIfNull(center);
@@ -96,7 +112,7 @@ public class CoffeeRouteService : ICoffeeRouteService
         };
     }
 
-    /// <summary>עובר על כל זוג תחנות סמוכות (i ו-i+1) וסוכם את המרחק ביניהן בק"מ.</summary>
+    /// <summary>מימוש פעולה 3: עובר על כל זוג תחנות סמוכות וסוכם את המרחק ביניהן בק"מ.</summary>
     public double CalculateTotalTourDistanceKm(IReadOnlyList<CoffeeStation> stations)
     {
         ArgumentNullException.ThrowIfNull(stations);

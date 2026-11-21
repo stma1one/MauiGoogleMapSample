@@ -61,15 +61,19 @@ public class CoffeeRegion
 }
 ```
 
-### 3.2 מהו `MapSpan` ואיך בונים אותו בשירות (`Services/CoffeeRegionService.cs`)?
+### 3.2 הגדרת הממשק (`Interface`): `Services/ICoffeeRegionService.cs`
 
-כדי להזיז את המפה לאזור מסוים, פקד ה-`Map` לא מקבל רק נקודה אחת — הוא צריך לדעת **גם איפה המרכז וגם כמה קרוב להסתכל (רמת הזום)**. לשם כך .NET MAUI מספקת 3 מחלקות שעובדות יחד:
-
+כדי להזיז את המפה לאזור מסוים, פקד ה-`Map` צריך לדעת **גם איפה המרכז וגם כמה קרוב להסתכל (רמת הזום)**. לשם כך .NET MAUI מספקת 3 מחלקות שעובדות יחד:
 1. **`Location(latitude, longitude)`** — נקודת המרכז המדויקת על כדור הארץ.
 2. **`Distance.FromKilometers(radiusKm)`** — המרחק מהמרכז אל קצה המסך (רדיוס קטן יותר = זום קרוב יותר!).
-3. **`MapSpan.FromCenterAndRadius(center, distance)`** — יוצר את "חלון המפה" (אזור הצפייה) שאותו נעביר למפה.
+3. **`MapSpan.FromCenterAndRadius(center, distance)`** — יוצר את "חלון המפה" שאותו נעביר למפה.
 
-בנוסף, אנו מגדירים **ממשק** `Services/ICoffeeRegionService.cs` (כדי שנוכל להזריק את השירות ב-DI ולבדוק אותו ב-Unit Tests):
+לפני כתיבת המחלקה המממשת, מגדירים **ממשק (`interface`)** שקובע אילו פעולות השירות מבטיח לספק (בשביל DI ובדיקות יחידה):
+
+| פעולה בממשק | קלט ופלט | למה הפעולה הוגדרה בחוזה? |
+| :--- | :--- | :--- |
+| `GetDefaultRegions()` | ללא קלט → `IReadOnlyList<CoffeeRegion>` | מספקת ל-ViewModel את רשימת ערי הקפה לקריאה בלבד. |
+| `BuildMapSpan(region, overrideRadiusKm?)` | אזור + רדיוס אופציונלי → `MapSpan` | מרכזת במקום אחד את חישוב ה-`MapSpan` ואת ההגנה מפני רדיוס לא תקין. |
 
 ```csharp
 using MauiGoogleMapSample.Models;
@@ -90,7 +94,11 @@ public interface ICoffeeRegionService
 }
 ```
 
-וכך נראה המימוש המתועד ב-`Services/CoffeeRegionService.cs` (כולל הגבלת רדיוס לטווח בטוח — **Clamping** בין `0.2` ל-`25.0` ק"מ כדי שהמפה לא תקרוס אם הועבר מספר שלילי או אפס):
+### 3.3 המחלקה המממשת את הממשק: `Services/CoffeeRegionService.cs`
+
+כעת יוצרים את המחלקה **`public class CoffeeRegionService : ICoffeeRegionService`** שמממשת את **שתי הפעולות** של הממשק:
+1. **מימוש פעולה 1 — `GetDefaultRegions()`:** מחזירה רשימה של 3 מוקדי קפה בישראל (תל אביב, ירושלים, חיפה) עם קואורדינטות ורדיוס ברירת מחדל.
+2. **מימוש פעולה 2 — `BuildMapSpan(region, overrideRadiusKm)`:** בוחרת את הרדיוס (`overrideRadiusKm ?? region.DefaultRadiusKm`), מבצעת **Clamping** לטווח בטוח (`0.2` עד `25.0` ק"מ) ומחזירה `MapSpan.FromCenterAndRadius(...)`.
 
 ```csharp
 using MauiGoogleMapSample.Models;
@@ -99,11 +107,10 @@ using Microsoft.Maui.Maps;
 
 namespace MauiGoogleMapSample.Services;
 
+// תחילת המחלקה המממשת את הממשק ICoffeeRegionService
 public class CoffeeRegionService : ICoffeeRegionService
 {
-    /// <summary>
-    /// מחזיר 3 מוקדי קפה מרכזיים בישראל עם הקואורדינטות ורדיוס הזום שלהם.
-    /// </summary>
+    /// <summary>מימוש פעולה 1: מחזיר 3 מוקדי קפה מרכזיים בישראל.</summary>
     public IReadOnlyList<CoffeeRegion> GetDefaultRegions()
     {
         return new List<CoffeeRegion>
@@ -114,9 +121,7 @@ public class CoffeeRegionService : ICoffeeRegionService
         };
     }
 
-    /// <summary>
-    /// יוצר אובייקט MapSpan ממורכז על קואורדינטות האזור ומוגן מפני רדיוס חריג.
-    /// </summary>
+    /// <summary>מימוש פעולה 2: יוצר MapSpan ממורכז על האזור ומוגן מפני רדיוס חריג.</summary>
     public MapSpan BuildMapSpan(CoffeeRegion region, double? overrideRadiusKm = null)
     {
         ArgumentNullException.ThrowIfNull(region);
