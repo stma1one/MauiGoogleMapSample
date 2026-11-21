@@ -85,16 +85,23 @@ namespace MauiGoogleMapSample.Services;
 
 /// <summary>
 /// חוזה לשירות שמספק את רשימת תחנות הקפה ומאפשר לסנן אותן לפי מילת חיפוש.
+/// (ראו הסבר על הטיפוס IReadOnlyList בתיבה מתחת לקוד)
 /// </summary>
 public interface ICoffeeStationService
 {
-    /// <summary>מחזיר את כל תחנות הקפה במאגר.</summary>
+    /// <summary>מחזיר את כל תחנות הקפה במאגר לקריאה בלבד.</summary>
     IReadOnlyList<CoffeeStation> GetStations();
 
     /// <summary>מחזיר רק תחנות ששמן, כתובתן או התמחותן מכילה את מילת החיפוש.</summary>
     IReadOnlyList<CoffeeStation> FilterStations(string? query);
 }
 ```
+
+<div class="alert-important">
+<strong>💡 מה זה <code>IReadOnlyList&lt;T&gt;</code> ולמה דווקא בחרנו בו (ולא ב-<code>List&lt;T&gt;</code>)?</strong><br/>
+• <code>IReadOnlyList&lt;CoffeeStation&gt;</code> מאפשר למי שמקבל את הרשימה <strong>לקרוא</strong> איברים (<code>foreach</code>, <code>Count</code>, <code>[0]</code>), אך <strong>מונע ממנו לשנות</strong> את הרשימה המקורית (אין עליו <code>Add</code>, <code>Remove</code> או <code>Clear</code>).<br/>
+• כך אנו שומרים על עקרון ה<strong>כימוס (Encapsulation)</strong>: ה-ViewModel לא יכול למחוק או להשחית בטעות את המאגר הפנימי <code>_stations</code> של השירות — הוא מקבל רשימה לקריאה בלבד ומעתיק ממנה ל-<code>ObservableCollection</code> הפרטי שלו.
+</div>
 
 ובתוך `Services/CoffeeStationService.cs` נממש את הסינון בעזרת LINQ (`Where`):
 
@@ -107,9 +114,10 @@ public IReadOnlyList<CoffeeStation> FilterStations(string? query)
         return _stations.AsReadOnly();
     }
 
+    // מסיר רווחים מיותרים מההתחלה ומהסוף (ראו הסבר על Trim() בתיבה מתחת לקוד)
     string trimmed = query.Trim();
 
-    // LINQ Where: עובר על כל תחנה (s) ומשאיר רק את אלו שמתאימות לחיפוש (ללא תלות באותיות גדולות/קטנות)
+    // LINQ Where: משאיר רק תחנות שמתאימות לחיפוש (ראו הסבר על StringComparison בתיבה מתחת לקוד)
     return _stations
         .Where(s =>
             s.Name.Contains(trimmed, StringComparison.OrdinalIgnoreCase) ||
@@ -118,6 +126,19 @@ public IReadOnlyList<CoffeeStation> FilterStations(string? query)
         .ToList();
 }
 ```
+
+<div class="alert-important">
+<strong>💡 הסבר על <code>query.Trim()</code> ועל <code>StringComparison.OrdinalIgnoreCase</code>:</strong><br/>
+• <strong><code>string trimmed = query.Trim();</code></strong> — מנקה רווחים מיותרים מתחילת המחרוזת ומסופה. במכשירים ניידים מקלדות מוסיפות לעיתים רווח אוטומטי בסוף מילה (למשל <code>"אספרסו "</code>); בלי <code>Trim()</code> החיפוש היה נכשל!<br/>
+• <strong><code>StringComparison.OrdinalIgnoreCase</code></strong> — אומר ל-C# לבדוק התאמה <strong>ללא תלות באותיות גדולות/קטנות</strong> (כך <code>"espresso"</code> יתאים ל-<code>"Espresso"</code>) ובאופן מהיר שאינו תלוי בשפת המכשיר.
+</div>
+
+| אפשרות ב-`StringComparison` | משמעות | מתי משתמשים? |
+| :--- | :--- | :--- |
+| `OrdinalIgnoreCase` | השוואה מהירה לפי קוד תו, מתעלמת מ-`A`/`a` | **המומלצת ביותר** לחיפוש טקסט, שמות, קודים וכתובות. |
+| `Ordinal` | השוואה מהירה ומדויקת שמבדילה בין `A` ל-`a` | בדיקת סיסמאות, טוקנים או מזהי `Id` מדויקים. |
+| `CurrentCulture` / `CurrentCultureIgnoreCase` | השוואה לפי כללי השפה והמיון המוגדרים במכשיר המשתמש | מיון רשימות לתצוגה תלוית-שפה. |
+| `InvariantCultureIgnoreCase` | השוואה בלתי-תלויה בשפת המכשיר עם כללי תרבות אחידים | נתונים בינלאומיים קבועים (כמו פורמטים טכניים). |
 
 ---
 
