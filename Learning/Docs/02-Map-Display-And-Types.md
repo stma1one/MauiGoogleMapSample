@@ -9,36 +9,46 @@
 
 ## 1. מה אנחנו בונים בשלב הזה? (תצוגת המסך)
 
-לאחר שבשלב 1 הגדרנו את חבילת `Microsoft.Maui.Controls.Maps`, את `.UseMauiMaps()` ואת הרשאות Android, כעת נבנה את מסך **`MapDisplayPage`** שמציג מפה חיה, כפתורים להחלפת סוג המפה (`Street`, `Satellite`, `Hybrid`), כפתורי זום (`+` / `-`) ובחירה בין 3 מוקדי קפה בישראל:
+לאחר שבשלב 1 הגדרנו את חבילת `Microsoft.Maui.Controls.Maps`, את `.UseMauiMaps()` ואת הרשאות Android, כעת נבנה צעד אחר צעד את מסך **`MapDisplayPage`** שמציג מפה חיה, כפתורים להחלפת סוג המפה (`Street`, `Satellite`, `Hybrid`), כפתורי זום (`+` / `-`) ובחירה בין 3 מוקדי קפה בישראל:
 
 ![תצוגת מסך שלב 2 - MapDisplayPage](../../Learning/Images/MapDisplayPage-overview.png)
 
-> **הערת פלטפורמה:** פקד המפות המובנה של .NET MAUI מציג מפה חיה ב-**Android**, **iOS** ו-**Mac Catalyst** (לא ב-Windows Desktop).
+> **הערת פלטפורמה:** פקד המפות המובנה של .NET MAUI מציג מפה חיה ב-**Android**, **iOS** ו-**Mac Catalyst** (לא ב-Windows Desktop). את הלוגיקה נבדוק באמצעות בדיקות היחידה ב-`MauiGoogleMapSample.Tests`.
 
 ---
 
 ## 2. מה מובנה ב-.NET MAUI לעומת מה אנחנו יוצרים בעצמנו?
 
-לפני שכותבים קוד, חשוב להבדיל בין מה שמגיע מוכן מ-.NET MAUI לבין מה שאנחנו בונים בפרויקט:
-
 | רכיב | מאיפה הוא מגיע? | תפקיד |
 | :--- | :--- | :--- |
 | `<maps:Map>` ו-`CoffeeMapControl.MoveToRegion(span)` | **מובנה ב-`Microsoft.Maui.Controls.Maps`** | פקד המפה הגרפי והמתודה שממקדת אותו על אזור. |
 | `MapType`, `Location`, `Distance`, `MapSpan` | **מובנה ב-.NET MAUI (`Microsoft.Maui.Maps`)** | סוגי מפה (`Street`/`Satellite`/`Hybrid`), קואורדינטות וטווח צפייה. |
-| `CoffeeRegion` (`Models/CoffeeRegion.cs`) | **מחלקה שיצרנו בעצמנו** | מודל נתונים לאזור קפה (שם, תיאור, `Latitude`, `Longitude`, רדיוס). |
-| `CoffeeRegionService` (`Services/CoffeeRegionService.cs`) | **מחלקה שיצרנו בעצמנו** | מחזירה את 3 האזורים ובונה `MapSpan.FromCenterAndRadius(...)`. |
-| `MoveToRegionRequested` (בתוך `MapDisplayViewModel.cs`) | **Event שיצרנו בעצמנו!** | אירוע C# רגיל שה-ViewModel מפעיל כדי לבקש מה-View להזיז את המפה (לא Event של פקד ה-Map!). |
+| `Dispatcher.Dispatch(...)` | **מובנה ב-`ContentPage` (.NET MAUI)** | מתזמן הרצת קוד בבטחה על ה-UI Thread הראשי. |
+| `CoffeeRegion` (`Models/CoffeeRegion.cs`) | **מחלקה שיצרנו בעצמנו** | מודל נתונים לאזור קפה. |
+| `ICoffeeRegionService` / `CoffeeRegionService` | **מחלקה שיצרנו בעצמנו (`Services/`)** | מספקת את רשימת האזורים ובונה `MapSpan`. |
+| `MapDisplayViewModel` + האירוע `MoveToRegionRequested` | **מחלקה ואירוע שיצרנו בעצמנו (`ViewModels/`)** | מנהלת את מצב המסך ומודיעה ל-View מתי להזיז את המפה. |
 
 ---
 
-## 3. שלב א' — הגדרת ה-Model וה-Service
+## 3. שלב א' — בניית המודל (`Models`) ושירות האזורים (`Services`)
 
-### 3.1 המודל (`Models/CoffeeRegion.cs`)
-ניצור מחלקת נתונים פשוטה שמייצגת אזור על המפה:
+### 3.1 המודל: `Models/CoffeeRegion.cs`
+מחלקת **Model** מייצגת מבנה נתונים טהור (ללא לוגיקת מסך). כל מופע של `CoffeeRegion` מתאר אזור גיאוגרפי אחד שבו נרצה למקד את המפה:
+
+| מאפיין (`Property`) | טיפוס | הסבר וערכים לדוגמה |
+| :--- | :--- | :--- |
+| `Name` | `string` | שם האזור שיוצג על הכפתור ובפס הסיכום (למשל `"תל אביב — רוטשילד"`). |
+| `Description` | `string` | תיאור קצר של אזור בתי הקפה. |
+| `Latitude` | `double` | **קו רוחב** (צפון/דרום). בישראל הערכים נעים בין `29.5` (אילת) ל-`33.3` (הצפון). |
+| `Longitude` | `double` | **קו אורך** (מזרח/מערב). בישראל הערכים נעים בין `34.2` ל-`35.9`. |
+| `DefaultRadiusKm` | `double` | רדיוס הזום ההתחלתי בקילומטרים (למשל `1.2` ק"מ = זום קרוב לרחובות). |
 
 ```csharp
 namespace MauiGoogleMapSample.Models;
 
+/// <summary>
+/// מייצג אזור גיאוגרפי של תחנות קפה על המפה.
+/// </summary>
 public class CoffeeRegion
 {
     public string Name { get; set; } = string.Empty;
@@ -49,106 +59,277 @@ public class CoffeeRegion
 }
 ```
 
-### 3.2 בניית `MapSpan` בשירות (`Services/CoffeeRegionService.cs`)
-כדי להגיד למפה **איפה להתמקד וכמה קרוב לעשות זום**, משתמשים ב-`Location(lat, lon)` וב-`MapSpan.FromCenterAndRadius`:
+### 3.2 מהו `MapSpan` ואיך בונים אותו בשירות (`Services/CoffeeRegionService.cs`)?
+
+כדי להזיז את המפה לאזור מסוים, פקד ה-`Map` לא מקבל רק נקודה אחת — הוא צריך לדעת **גם איפה המרכז וגם כמה קרוב להסתכל (רמת הזום)**. לשם כך .NET MAUI מספקת 3 מחלקות שעובדות יחד:
+
+1. **`Location(latitude, longitude)`** — נקודת המרכז המדויקת על כדור הארץ.
+2. **`Distance.FromKilometers(radiusKm)`** — המרחק מהמרכז אל קצה המסך (רדיוס קטן יותר = זום קרוב יותר!).
+3. **`MapSpan.FromCenterAndRadius(center, distance)`** — יוצר את "חלון המפה" (אזור הצפייה) שאותו נעביר למפה.
+
+בנוסף, אנו מגדירים **ממשק** `ICoffeeRegionService` (כדי שנוכל להזריק אותו ב-DI ולבדוק אותו ב-Unit Tests), ומגבילים את הרדיוס לטווח בטוח (`0.2` עד `25.0` ק"מ — פעולה שנקראת **Clamping**) כדי שהמפה לא תקרוס אם הועבר מספר שלילי או אפס:
 
 ```csharp
-public MapSpan BuildMapSpan(CoffeeRegion region, double? overrideRadiusKm = null)
-{
-    double radiusKm = overrideRadiusKm ?? region.DefaultRadiusKm;
-    if (radiusKm < 0.2) radiusKm = 0.2;
-    else if (radiusKm > 25.0) radiusKm = 25.0;
+using MauiGoogleMapSample.Models;
+using Microsoft.Maui.Devices.Sensors;
+using Microsoft.Maui.Maps;
 
-    var center = new Location(region.Latitude, region.Longitude);
-    return MapSpan.FromCenterAndRadius(center, Distance.FromKilometers(radiusKm));
+namespace MauiGoogleMapSample.Services;
+
+public class CoffeeRegionService : ICoffeeRegionService
+{
+    public IReadOnlyList<CoffeeRegion> GetDefaultRegions()
+    {
+        return new List<CoffeeRegion>
+        {
+            new() { Name = "תל אביב — רוטשילד", Latitude = 32.0636, Longitude = 34.7731, DefaultRadiusKm = 1.2 },
+            new() { Name = "ירושלים — מחנה יהודה", Latitude = 31.7850, Longitude = 35.2124, DefaultRadiusKm = 1.5 },
+            new() { Name = "חיפה — המושבה הגרמנית", Latitude = 32.8191, Longitude = 34.9912, DefaultRadiusKm = 1.8 }
+        };
+    }
+
+    public MapSpan BuildMapSpan(CoffeeRegion region, double? overrideRadiusKm = null)
+    {
+        ArgumentNullException.ThrowIfNull(region);
+
+        // שימוש ברדיוס שהועבר או בברירת המחדל, תוך הגבלה לטווח בטוח (0.2 עד 25 ק"מ)
+        double radiusKm = overrideRadiusKm ?? region.DefaultRadiusKm;
+        if (radiusKm < 0.2) radiusKm = 0.2;
+        else if (radiusKm > 25.0) radiusKm = 25.0;
+
+        // יצירת נקודת המרכז וחלון הצפייה (MapSpan)
+        var center = new Location(region.Latitude, region.Longitude);
+        return MapSpan.FromCenterAndRadius(center, Distance.FromKilometers(radiusKm));
+    }
 }
 ```
 
 ---
 
-## 4. שלב ב' — ה-ViewModel וה-Event שלנו (`ViewModels/MapDisplayViewModel.cs`)
+## 4. שלב ב' — בניית ה-ViewModel שלב אחר שלב (`ViewModels/MapDisplayViewModel.cs`)
 
-### למה צריך Event משלנו (`MoveToRegionRequested`)?
-פקד ה-`<maps:Map>` **אינו** תומך ב-Binding ישיר למיקוד (`MoveToRegion` היא מתודה בקוד ולא Property).  
-מכיוון שבארכיטקטורת **MVVM** אסור ל-ViewModel להכיר את פקד ה-`Map` הגרפי (כדי שנוכל לבדוק את ה-ViewModel ב-Unit Tests), אנחנו **יוצרים בעצמנו Event ב-`MapDisplayViewModel.cs`**:
+נבנה את `MapDisplayViewModel` ב-**5 צעדים קטנים וברורים** (בשיטת Vanilla C# MVVM — ללא Source Generators):
+
+### צעד 1: הגדרת המחלקה, השדות והבנאי (`Constructor`)
+המחלקה יורשת מ-`BaseViewModel` (שמממשת `INotifyPropertyChanged`), מקבלת את `ICoffeeRegionService` בהזרקת תלויות (DI), וטוענת את רשימת האזורים ל-`ObservableCollection<CoffeeRegion>`:
 
 ```csharp
 public class MapDisplayViewModel : BaseViewModel
 {
-    // Event שיצרנו בעצמנו (לא חלק מפקד ה-Map!) כדי להודיע לדף מתי להזיז את המפה
-    public event Action<MapSpan>? MoveToRegionRequested;
+    private const double MinZoomRadiusKm = 0.25;
+    private const double MaxZoomRadiusKm = 20.0;
 
-    public MapSpan GetCurrentMapSpan()
-    {
-        return _regionService.BuildMapSpan(SelectedRegion, ZoomRadiusKm);
-    }
+    private readonly ICoffeeRegionService _regionService;
+    private MapType _selectedMapType = MapType.Street;
+    private CoffeeRegion _selectedRegion;
+    private double _zoomRadiusKm;
+    private string _regionSummary = string.Empty;
 
-    private void ExecuteSelectRegion(CoffeeRegion? region)
-    {
-        if (region is null) return;
-        SelectedRegion = region;
-        ZoomRadiusKm = region.DefaultRadiusKm;
-        RequestMapMove();
-    }
+    public ObservableCollection<CoffeeRegion> Regions { get; }
 
-    private void ExecuteZoomIn()
+    public MapDisplayViewModel(ICoffeeRegionService regionService)
     {
-        ZoomRadiusKm = Math.Max(0.25, Math.Round(ZoomRadiusKm / 1.5, 2));
-        RequestMapMove();
-    }
+        _regionService = regionService;
+        Title = "CoffeeMap — שלב 2: תצוגת מפה";
 
-    // כאן ה-ViewModel "משדר" את האירוע עם ה-MapSpan החדש
-    private void RequestMapMove()
-    {
-        MapSpan span = GetCurrentMapSpan();
-        MoveToRegionRequested?.Invoke(span);
+        Regions = new ObservableCollection<CoffeeRegion>(_regionService.GetDefaultRegions());
+        _selectedRegion = Regions[0];
+        _zoomRadiusKm = _selectedRegion.DefaultRadiusKm;
+
+        // אתחול הפקודות (יוסבר בצעד 3)
+        _setMapTypeCommand = new Command<string>(ExecuteSetMapType);
+        _selectRegionCommand = new Command<CoffeeRegion>(ExecuteSelectRegion, CanExecuteSelectRegion);
+        _zoomInCommand = new Command(ExecuteZoomIn, CanExecuteZoomIn);
+        _zoomOutCommand = new Command(ExecuteZoomOut, CanExecuteZoomOut);
+
+        UpdateRegionSummary();
     }
 }
 ```
 
+### צעד 2: הגדרת המאפיינים (`Properties`) עם `OnPropertyChanged()`
+לכל מאפיין שהמסך קשור אליו (`Binding`) יש שדה פרטי ו-Setter מפורש בן 3 שורות. שימו לב שב-`ZoomRadiusKm` אנו קוראים גם ל-`ChangeCanExecute()` כדי שפקודות הזום (`+`/`-`) יידעו מיד אם הגענו לגבול וצריך להשבית את הכפתור:
+
+```csharp
+public MapType SelectedMapType
+{
+    get => _selectedMapType;
+    set
+    {
+        if (_selectedMapType == value) return;
+        _selectedMapType = value;
+        OnPropertyChanged();
+        UpdateRegionSummary();
+    }
+}
+
+public double ZoomRadiusKm
+{
+    get => _zoomRadiusKm;
+    set
+    {
+        if (Math.Abs(_zoomRadiusKm - value) < 0.001) return;
+        _zoomRadiusKm = value;
+        OnPropertyChanged();
+        _zoomInCommand.ChangeCanExecute();
+        _zoomOutCommand.ChangeCanExecute();
+        UpdateRegionSummary();
+    }
+}
+```
+
+### צעד 3: הגדרת הפקודות (`ICommand`) ותנאי `CanExecute`
+כל כפתור במסך מחובר לפקודה (`ICommand`):
+* `SetMapTypeCommand` — מקבלת מחרוזת (`"Street"`, `"Satellite"`, `"Hybrid"`), ממירה אותה ל-`enum MapType` ומעדכנת את `SelectedMapType`.
+* `ZoomInCommand` — מקטינה את הרדיוס פי `1.5`, ופעילה (`CanExecute`) רק כל עוד `ZoomRadiusKm > MinZoomRadiusKm`.
+* `ZoomOutCommand` — מגדילה את הרדיוס פי `1.5`, ופעילה רק כל עוד `ZoomRadiusKm < MaxZoomRadiusKm`.
+
+```csharp
+private bool CanExecuteZoomIn() => ZoomRadiusKm > MinZoomRadiusKm;
+
+private void ExecuteZoomIn()
+{
+    ZoomRadiusKm = Math.Max(MinZoomRadiusKm, Math.Round(ZoomRadiusKm / 1.5, 2));
+    RequestMapMove();
+}
+```
+
+### צעד 4: ה-Event שלנו להזזת המפה (`MoveToRegionRequested`)
+פקד ה-`<maps:Map>` **אינו** תומך ב-Binding ישיר ל-`MoveToRegion`.  
+מכיוון שאסור ל-ViewModel להחזיק הפניה לפקד הגרפי, **אנחנו יוצרים בעצמנו Event ב-ViewModel**:
+
+```csharp
+// Event שיצרנו בעצמנו (לא של פקד המפה!)
+public event Action<MapSpan>? MoveToRegionRequested;
+
+public MapSpan GetCurrentMapSpan()
+{
+    return _regionService.BuildMapSpan(SelectedRegion, ZoomRadiusKm);
+}
+
+private void RequestMapMove()
+{
+    MapSpan span = GetCurrentMapSpan();
+    // מפעיל את האירוע — אם ה-View נרשם אליו, הוא יקבל את ה-span ויזיז את המפה
+    MoveToRegionRequested?.Invoke(span);
+}
+```
+
+### צעד 5: עדכון פס המידע בעברית (`UpdateRegionSummary`)
+בכל שינוי של עיר, סוג מפה או רדיוס, המתודה בונה מחרוזת סיכום קריאה ומעדכנת את `RegionSummary`:
+`"תל אביב — רוטשילד | תצוגה: רחובות (Street) | רדיוס: 1.2 ק\"מ"`.
+
 ---
 
-## 5. שלב ג' — דף ה-XAML (`Views/MapDisplayPage.xaml`)
+## 5. שלב ג' — בניית ה-XAML שלב אחר שלב (`Views/MapDisplayPage.xaml`)
 
-1. בראש הדף מוסיפים את מרחב השמות `xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"`.
-2. נותנים לפקד המפה שם (`x:Name="CoffeeMapControl"`) כדי שנוכל לקרוא לו מה-Code-Behind (`MapDisplayPage.xaml.cs`), ומחברים את `MapType` ב-Binding:
+נבנה את המסך ב-**4 צעדים מסודרים**:
+
+### צעד 1: הגדרת כותרת ה-`ContentPage` ומרחבי השמות (`xmlns`)
+כדי להשתמש בפקד `<maps:Map>` וב-Compiled Bindings (`x:DataType`), מוסיפים בראש הדף 3 הצהרות `xmlns`:
+* `xmlns:maps` — מאפשר לכתוב `<maps:Map>`.
+* `xmlns:models` — מאפשר לציין `x:DataType="models:CoffeeRegion"` בתוך רשימת הערים.
+* `xmlns:vm` — מאפשר לציין `x:DataType="vm:MapDisplayViewModel"` על כל הדף.
 
 ```xml
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
+             xmlns:models="clr-namespace:MauiGoogleMapSample.Models"
              xmlns:vm="clr-namespace:MauiGoogleMapSample.ViewModels"
              x:Class="MauiGoogleMapSample.Views.MapDisplayPage"
              x:DataType="vm:MapDisplayViewModel"
-             FlowDirection="RightToLeft">
+             FlowDirection="RightToLeft"
+             Title="{Binding Title}">
+```
 
-    <!-- שורת כפתורים לסוג מפה וזום -->
-    <HorizontalStackLayout Grid.Row="0" Spacing="8" HorizontalOptions="Center">
-        <Button Text="רחובות" Command="{Binding SetMapTypeCommand}" CommandParameter="Street" />
-        <Button Text="לוויין" Command="{Binding SetMapTypeCommand}" CommandParameter="Satellite" />
-        <Button Text="משולב" Command="{Binding SetMapTypeCommand}" CommandParameter="Hybrid" />
-        <Button Text="+" WidthRequest="44" Command="{Binding ZoomInCommand}" />
-        <Button Text="-" WidthRequest="44" Command="{Binding ZoomOutCommand}" />
-    </HorizontalStackLayout>
+### צעד 2: חלוקת המסך ל-4 שורות עם `Grid`
+```xml
+<Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="8" Padding="12">
+    <!-- Row 0 (Auto): כפתורי סוג מפה וזום -->
+    <!-- Row 1 (Auto): רשימת ערים אופקית -->
+    <!-- Row 2 (*):    המפה — תופסת את כל השטח הפנוי במסך! -->
+    <!-- Row 3 (Auto): פס סיכום המצב הנוכחי -->
+</Grid>
+```
 
-    <!-- פקד המפה הטבעי -->
+### צעד 3: שורת הכפתורים (`Row 0`) ורשימת הערים (`Row 1`)
+שימו לב: בתוך `CollectionView`, ההקשר (`BindingContext`) של כל פריט הוא `CoffeeRegion`, אבל הפקודה `SelectRegionCommand` נמצאת ב-`MapDisplayViewModel` — לכן משתמשים ב-`RelativeSource AncestorType` כדי "לטפס" חזרה ל-ViewModel:
+
+```xml
+<!-- Row 0: סוגי מפה וזום -->
+<HorizontalStackLayout Grid.Row="0" Spacing="8" HorizontalOptions="Center">
+    <Button Text="רחובות" Command="{Binding SetMapTypeCommand}" CommandParameter="Street" />
+    <Button Text="לוויין" Command="{Binding SetMapTypeCommand}" CommandParameter="Satellite" />
+    <Button Text="משולב" Command="{Binding SetMapTypeCommand}" CommandParameter="Hybrid" />
+    <Button Text="+" WidthRequest="44" Command="{Binding ZoomInCommand}" />
+    <Button Text="-" WidthRequest="44" Command="{Binding ZoomOutCommand}" />
+</HorizontalStackLayout>
+
+<!-- Row 1: בחירת עיר -->
+<CollectionView Grid.Row="1" ItemsSource="{Binding Regions}" ItemsLayout="HorizontalList" HeightRequest="48">
+    <CollectionView.ItemTemplate>
+        <DataTemplate x:DataType="models:CoffeeRegion">
+            <Button Text="{Binding Name}" Margin="4,2" FontSize="13"
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MapDisplayViewModel}}, Path=SelectRegionCommand}"
+                    CommandParameter="{Binding .}" />
+        </DataTemplate>
+    </CollectionView.ItemTemplate>
+</CollectionView>
+```
+
+### צעד 4: הצבת פקד המפה (`Row 2`) ופס הסיכום (`Row 3`)
+נותנים למפה `x:Name="CoffeeMapControl"` כדי שנוכל לקרוא ל-`MoveToRegion` מתוך `MapDisplayPage.xaml.cs`:
+
+```xml
+<Border Grid.Row="2" StrokeShape="RoundRectangle 12" Stroke="{StaticResource Gray300}">
     <maps:Map x:Name="CoffeeMapControl"
-              Grid.Row="2"
               MapType="{Binding SelectedMapType}"
               IsScrollEnabled="True"
               IsZoomEnabled="True" />
-</ContentPage>
+</Border>
+
+<Border Grid.Row="3" StrokeShape="RoundRectangle 8" Padding="10" BackgroundColor="{StaticResource Gray100}">
+    <Label Text="{Binding RegionSummary}" FontSize="13" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+</Border>
 ```
 
 ---
 
-## 6. שלב ד' — חיבור המיקוד בקובץ `Views/MapDisplayPage.xaml.cs` (ה-Code-Behind)
+## 6. שלב ד' — בניית ה-Code-Behind שלב אחר שלב (`Views/MapDisplayPage.xaml.cs`)
 
-כאן נסגר המעגל! בקובץ **`Views/MapDisplayPage.xaml.cs`**:
-1. ב-`OnAppearing()` (כשהמסך עולה) אנו **נרשמים** לאירוע `_viewModel.MoveToRegionRequested` וגם מבצעים מיקוד ראשוני על תל אביב.
-2. ב-`OnDisappearing()` (כשעוזבים את המסך) אנו **מבטלים רישום** (`-=`) כדי למנוע דליפות זיכרון!
-3. בתוך `SafeMoveToRegion(span)` אנו קוראים למתודה המובנית `CoffeeMapControl.MoveToRegion(span)` דרך `Dispatcher.Dispatch` (בטוח לאנדרואיד):
+נבנה את `MapDisplayPage.xaml.cs` ב-**4 צעדים ברורים**:
 
+### צעד 1: הבנאי (`Constructor`) וחיבור ה-`BindingContext`
+הדף מקבל את `MapDisplayViewModel` אוטומטית ממנגנון ה-DI (שרשמנו ב-`MauiProgram.cs`) ושומר אותו בשדה `_viewModel`:
+
+```csharp
+private readonly MapDisplayViewModel _viewModel;
+
+public MapDisplayPage(MapDisplayViewModel viewModel)
+{
+    InitializeComponent();
+    _viewModel = viewModel;
+    BindingContext = _viewModel;
+}
+```
+
+### צעד 2: מה זה `Dispatcher.Dispatch(...)` ולמה משתמשים בו כאן?
+
+<div class="alert-important">
+<strong>💡 מושג חדש למתחילים — מה זה <code>Dispatcher</code>?</strong><br/>
+באפליקציות מובייל (Android / iOS), קיים <strong>חוט ריצה ראשי אחד בלבד שמותר לו לגעת בפקדי המסך</strong> — הוא נקרא <strong>UI Thread</strong> (Main Thread).<br/>
+בנוסף, ברגע שבו <code>OnAppearing()</code> מתחיל לרוץ, פקד המפה הטבעי של אנדרואיד עדיין מסיים להיטען על המסך.<br/>
+הפקודה <code>Dispatcher.Dispatch(() =&gt; ...)</code> היא הדרך של .NET MAUI לומר למערכת ההפעלה:<br/>
+<em>"הכניסי את הפעולה הזו לתור העבודה של ה-UI Thread, והריצי אותה בבטחה מיד כשהמסך והפקד מוכנים!"</em><br/>
+כך אנחנו מונעים קריסות תזמון (Race Conditions) ושגיאות גישה לממשק המשתמש מחוט ריצה אחר.
+</div>
+
+### צעד 3: הרשמה לאירוע ב-`OnAppearing()` וביטול הרשמה ב-`OnDisappearing()`
+* כשהדף מופיע (`OnAppearing`), נרשמים לאירוע שיצרנו ב-ViewModel (`+=`) וממקדים את המפה על העיר הראשונה.
+* כשהמשתמש עוזב את הדף (`OnDisappearing`), **חובה** לבטל את ההרשמה (`-=`) כדי שהאירוע לא ישאיר את הדף תקוע בזיכרון (מניעת **Memory Leak**).
+
+### צעד 4: הקוד המלא של `Views/MapDisplayPage.xaml.cs`
 ```csharp
 using MauiGoogleMapSample.ViewModels;
 using Microsoft.Maui.Maps;
@@ -169,15 +350,12 @@ public partial class MapDisplayPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        // 1. הרשמה לאירוע שיצרנו ב-ViewModel
         _viewModel.MoveToRegionRequested += OnMoveToRegionRequested;
-        // 2. מיקוד ראשוני של המפה בעליית המסך
         Dispatcher.Dispatch(() => SafeMoveToRegion(_viewModel.GetCurrentMapSpan()));
     }
 
     protected override void OnDisappearing()
     {
-        // ביטול הרשמה בעת יציאה מהמסך (חובה למניעת דליפות זיכרון!)
         _viewModel.MoveToRegionRequested -= OnMoveToRegionRequested;
         base.OnDisappearing();
     }
