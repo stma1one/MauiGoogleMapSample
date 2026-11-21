@@ -127,10 +127,13 @@ tr:nth-child(even) { background: #f8fafc; }
 a { color: #1d4ed8; }
 img {
     max-width: 100%;
+    max-height: 135mm;
+    width: auto;
     height: auto;
+    display: block;
+    margin: 12px auto;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    margin: 10px 0;
+    border-radius: 10px;
 }
 .mvvm-box {
     background: #f8fafc;

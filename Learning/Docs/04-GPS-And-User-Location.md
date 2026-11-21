@@ -2,58 +2,183 @@
 
 > **פרויקט:** CoffeeMap — מפת תחנות קפה ב-.NET MAUI  
 > **ענף Git (Branch):** `stage/04-gps-and-user-location`  
-> **קהל יעד:** תלמידים מתחילים בפיתוח אפליקציות מובייל (.NET MAUI)
+> **קהל יעד:** תלמידים מתחילים בפיתוח אפליקציות מובייל (.NET MAUI)  
+> **מקרא צבעים בקוד:** שורות המודגשות ב**רקע ירוק וטקסט צהוב** הן שורות חדשות שיש להוסיף לתוך קובץ קיים.
 
 ---
 
-## 1. הרשאות התקנה לעומת הרשאות בזמן ריצה (Runtime Permissions)
+## 1. מה אנחנו בונים בשלב הזה? (תצוגת המסך)
 
-בשלב 1 הצהרנו ב-`AndroidManifest.xml` על `ACCESS_FINE_LOCATION` ו-`ACCESS_COARSE_LOCATION`.  
-אך באנדרואיד המודרני זה **אינו מספיק**! כדי להגן על המשתמש, האפליקציה חייבת לבקש אישור מפורש **בזמן ריצה** לפני שהיא ניגשת ל-GPS או מפעילה `IsShowingUser="True"` על המפה:
+בשלב זה נבנה את מסך **`UserLocationPage`** שמבקש מהמשתמש הרשאת GPS בזמן ריצה, מציג את הנקודה הכחולה שלו על המפה (`IsShowingUser`), ממקד את המפה עליו, ומחשב איזו תחנת קפה היא הקרובה ביותר:
+
+![תצוגת מסך שלב 4 - UserLocationPage](../../Learning/Images/UserLocationPage-overview.png)
+
+---
+
+## 2. מה מובנה ב-.NET MAUI לעומת מה אנחנו יוצרים בעצמנו?
+
+| רכיב | מאיפה הוא מגיע? | תפקיד |
+| :--- | :--- | :--- |
+| `Permissions.CheckStatusAsync` / `RequestAsync<Permissions.LocationWhenInUse>` | **מובנה ב-.NET MAUI (`Microsoft.Maui.ApplicationModel`)** | מבקש אישור מיקום מהמשתמש בחלון קופץ של מערכת ההפעלה. |
+| `Geolocation.Default.GetLocationAsync(...)` | **מובנה ב-.NET MAUI (`Microsoft.Maui.Devices.Sensors`)** | קורא את קואורדינטות ה-GPS הנוכחיות מהמכשיר. |
+| `Location.CalculateDistance(from, to, DistanceUnits.Kilometers)` | **מובנה ב-.NET MAUI** | מחשב מרחק אווירי מדויק בק"מ בין שתי נקודות. |
+| `IsShowingUser` (על `<maps:Map>`) | **מאפיין מובנה של `<maps:Map>`** | מציג את הנקודה הכחולה של המשתמש על המפה. |
+| `ILocationService`, `LocationService`, `UserLocationViewModel`, `MoveToRegionRequested` | **מחלקות ואירוע שיצרנו בעצמנו** | מפרידים את חיישן ה-GPS מה-ViewModel כדי שנוכל לבדוק אותו ב-Unit Tests. |
+
+---
+
+## 3. שלב א' — שירות המיקום (`Services/LocationService.cs`)
+
+בשלב 1 הצהרנו ב-`AndroidManifest.xml` על הרשאות מיקום, אבל באנדרואיד חובה גם לבקש **הרשאה בזמן ריצה** לפני קריאת ה-GPS:
 
 ```csharp
-PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
-if (status != PermissionStatus.Granted)
+public async Task<LocationFetchResult> GetCurrentLocationAsync()
 {
-    status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+    PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+    if (status != PermissionStatus.Granted)
+    {
+        status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+    }
+
+    if (status != PermissionStatus.Granted)
+    {
+        return new LocationFetchResult(false, false, null, "הרשאת מיקום נדחתה.");
+    }
+
+    var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
+    Location? location = await Geolocation.Default.GetLocationAsync(request);
+    // ... מחזירים את המיקום שנמצא
 }
 ```
 
-רק לאחר שקיבלנו `PermissionStatus.Granted`, מותר לקרוא למיקום ה-GPS ולהציג את הנקודה הכחולה של המשתמש (`IsShowingUser = true`).
-
----
-
-## 2. קריאת מיקום ה-GPS (`Geolocation`) וחישוב מרחק לתחנת קפה קרובה
-
-לאחר שיש הרשאה, מבקשים את מיקום המכשיר באופן אסינכרוני (`async`/`await` כדי לא לתקוע את ממשק המשתמש):
+ובאותה מחלקה (`Services/LocationService.cs`) מחשבים את התחנה הקרובה ביותר:
 
 ```csharp
-var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
-Location? location = await Geolocation.Default.GetLocationAsync(request);
-```
-
-כדי למצוא איזו תחנת קפה היא הקרובה ביותר למשתמש, משתמשים בפונקציה המובנית של .NET MAUI לחישוב מרחק אווירי בין שתי נקודות:
-
-```csharp
-double distanceKm = Location.CalculateDistance(userLocation, station.Location, DistanceUnits.Kilometers);
+public double CalculateDistanceKm(Location from, Location to)
+{
+    return Location.CalculateDistance(from, to, DistanceUnits.Kilometers);
+}
 ```
 
 ---
 
-## 3. עבודה אסינכרונית בטוחה ב-ViewModel (`IsLoading` + `try/catch/finally`)
+## 4. שלב ב' — עבודה אסינכרונית ב-`ViewModels/UserLocationViewModel.cs`
 
-ב-`ViewModels/UserLocationViewModel.cs` אנו מדגימים 3 כללי זהב של תכנות אסינכרוני ב-MAUI:
-1. משתמשים ב-`IsLoading` המחובר ל-`<ActivityIndicator>` (ולא ב-`Page.IsBusy` המיושן).
-2. משביתים את הכפתור בזמן טעינה באמצעות `CanExecute => !IsLoading` + `ChangeCanExecute()`.
-3. עוטפים את העבודה ב-`try / catch / finally` כדי שתמיד נכבה את `IsLoading = false` גם אם אירעה שגיאה.
+שימו לב ל-4 עקרונות מפתח ב-`ExecuteLocateMeAsync()`:
+1. מפעילים `IsLoading = true` (שמפעיל `<ActivityIndicator>` במסך) ומשביתים את הכפתור דרך `CanExecute => !IsLoading`.
+2. עוטפים ב-`try / catch / finally` כדי שתמיד נכבה `IsLoading = false` גם אם אירעה שגיאה.
+3. מפעילים `IsShowingUser = true` רק אחרי שהתקבלה הרשאה!
+4. משדרים את ה-Event שלנו `MoveToRegionRequested?.Invoke(span)` כדי למקד את המפה על המשתמש.
+
+```csharp
+public event Action<MapSpan>? MoveToRegionRequested;
+
+public async Task ExecuteLocateMeAsync()
+{
+    if (IsLoading) return;
+    IsLoading = true;
+    _locateMeCommand.ChangeCanExecute();
+    try
+    {
+        LocationFetchResult result = await _locationService.GetCurrentLocationAsync();
+        if (!result.IsSuccess || result.Location is null)
+        {
+            IsShowingUser = false;
+            LocationStatus = result.Message;
+            return;
+        }
+
+        IsShowingUser = result.PermissionGranted;
+        (CoffeeStation? nearest, double distanceKm) = _locationService.FindNearestStation(result.Location, Stations);
+        NearestStationSummary = $"☕ התחנה הקרובה ביותר: {nearest?.Name} (במרחק {distanceKm:0.##} ק\"מ)";
+
+        MapSpan span = MapSpan.FromCenterAndRadius(result.Location, Distance.FromKilometers(2.0));
+        MoveToRegionRequested?.Invoke(span);
+    }
+    finally
+    {
+        IsLoading = false;
+        _locateMeCommand.ChangeCanExecute();
+    }
+}
+```
 
 ---
 
-## 4. איך בודקים GPS ב-Unit Tests בלי מכשיר אמיתי? (תבנית Fake Service)
+## 5. שלב ג' — חיבור המפה ב-`Views/UserLocationPage.xaml` וב-`Views/UserLocationPage.xaml.cs`
 
-במחשב הפיתוח אין מקלט GPS אמיתי. לכן הפרדנו את הגישה לחיישן מאחורי ממשק **`ILocationService`**!  
-בפרויקט הבדיקות (`UserLocationViewModelTests.cs`), יצרנו מחלקת דמה קטנה (`FakeLocationService`) שמחזירה מיקום קבוע ליד רחוב שנקין — וכך בדקנו תוך שנייה אחת ש-`UserLocationViewModel` מוצא את `"קליית שנקין"` כתחנה הקרובה ביותר, וגם יודע להתמודד עם דחיית הרשאה או שגיאת חיישן!
+בקובץ **`Views/UserLocationPage.xaml`**:
+```xml
+<HorizontalStackLayout Grid.Row="0" Spacing="10" HorizontalOptions="Center">
+    <Button Text="📍 מצא את המיקום שלי (GPS)" Command="{Binding LocateMeCommand}" />
+    <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" />
+</HorizontalStackLayout>
 
-* להרצת הבדיקות: ב-Visual Studio לחצו `Test -> Test Explorer -> Run All Tests`, או בטרמינל הריצו `dotnet build` ו-`dotnet test`.
+<maps:Map x:Name="GpsMapControl"
+          Grid.Row="1"
+          IsShowingUser="{Binding IsShowingUser}"
+          ItemsSource="{Binding Stations}" />
+```
 
-למשימת התרגול שלכם, פתחו את [`Docs/Assignments/04-GPS-And-User-Location-Assignment.pdf`](Assignments/04-GPS-And-User-Location-Assignment.pdf).
+בקובץ **`Views/UserLocationPage.xaml.cs`** (הרשמה ל-`MoveToRegionRequested` וביטול רישום ביציאה):
+```csharp
+protected override void OnAppearing()
+{
+    base.OnAppearing();
+    _viewModel.MoveToRegionRequested += OnMoveToRegionRequested;
+    Dispatcher.Dispatch(() => SafeMoveToRegion(
+        MapSpan.FromCenterAndRadius(new Location(32.0636, 34.7731), Distance.FromKilometers(3.0))));
+}
+
+protected override void OnDisappearing()
+{
+    _viewModel.MoveToRegionRequested -= OnMoveToRegionRequested;
+    base.OnDisappearing();
+}
+
+private void OnMoveToRegionRequested(MapSpan span)
+{
+    Dispatcher.Dispatch(() => SafeMoveToRegion(span));
+}
+```
+
+---
+
+## 6. שלב ד' — מה מוסיפים ב-`MauiProgram.cs`?
+
+```csharp
+private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
+{
+    builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
+    builder.Services.AddSingleton<ICoffeeRegionService, CoffeeRegionService>();
+    builder.Services.AddSingleton<ICoffeeStationService, CoffeeStationService>();
++   builder.Services.AddSingleton<ILocationService, LocationService>();
+    return builder;
+}
+
+private static MauiAppBuilder RegisterViewModels(this MauiAppBuilder builder)
+{
+    builder.Services.AddTransient<SetupStatusViewModel>();
+    builder.Services.AddTransient<MapDisplayViewModel>();
+    builder.Services.AddTransient<CoffeePinsViewModel>();
++   builder.Services.AddTransient<UserLocationViewModel>();
+    return builder;
+}
+
+private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
+{
+    builder.Services.AddTransient<MainPage>();
+    builder.Services.AddTransient<MapDisplayPage>();
+    builder.Services.AddTransient<CoffeePinsPage>();
++   builder.Services.AddTransient<UserLocationPage>();
+    return builder;
+}
+```
+
+---
+
+## 7. בדיקת GPS ב-Unit Tests בלי מכשיר אמיתי (`FakeLocationService`)
+במחשב הפיתוח אין מקלט GPS אמיתי. בזכות הממשק `ILocationService`, יצרנו ב-`MauiGoogleMapSample.Tests/UserLocationViewModelTests.cs` מחלקת דמה (`FakeLocationService`) שמחזירה מיקום קבוע ליד רחוב שנקין — וכך בודקים ב-2 שניות שה-ViewModel מוצא את `"קליית שנקין"`, מתמודד עם דחיית הרשאה ומאפס את `IsLoading`.
+
+* בצעו **Build** והריצו את הבדיקות ב-Visual Studio (`Test -> Test Explorer -> Run All Tests`) או בטרמינל (`dotnet build` ו-`dotnet test`).
+* למשימת התרגול שלכם, פתחו את [`Assignments/04-GPS-And-User-Location-Assignment.pdf`](Assignments/04-GPS-And-User-Location-Assignment.pdf).

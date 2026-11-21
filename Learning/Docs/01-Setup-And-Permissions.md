@@ -17,6 +17,8 @@
 3. **מנגנון ההרשאות והגדרת ה-API Key ב-Android (`AndroidManifest.xml`)** — איך מערכת ההפעלה מגנה על פרטיות המשתמש ואיפה בדיוק מציבים את המפתח.
 4. **הגנה על ה-API Key (`Secrets.props` + `.gitignore`) וארכיטקטורת MVVM** — איך שומרים את המפתח באופן מאובטח מחוץ ל-GitHub, ואיך בנויות השכבות.
 
+![תצוגת מסך שלב 1 - MainPage](../../Learning/Images/MainPage-overview.png)
+
 ---
 
 ## 2. מהי חבילת NuGet ואיך מתקינים את `Microsoft.Maui.Controls.Maps`?

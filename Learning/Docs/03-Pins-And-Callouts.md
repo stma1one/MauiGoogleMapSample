@@ -2,33 +2,96 @@
 
 > **פרויקט:** CoffeeMap — מפת תחנות קפה ב-.NET MAUI  
 > **ענף Git (Branch):** `stage/03-pins-and-callouts`  
-> **קהל יעד:** תלמידים מתחילים בפיתוח אפליקציות מובייל (.NET MAUI)
+> **קהל יעד:** תלמידים מתחילים בפיתוח אפליקציות מובייל (.NET MAUI)  
+> **מקרא צבעים בקוד:** שורות המודגשות ב**רקע ירוק וטקסט צהוב** הן שורות חדשות שיש להוסיף לתוך קובץ קיים.
 
 ---
 
-## 1. מה זה `Pin` במפה ומה המבנה שלו?
+## 1. מה אנחנו בונים בשלב הזה? (תצוגת המסך)
 
-כשאנחנו פותחים Google Maps או Waze ורואים "נעץ" או סמן צבעוני על מסעדה או תחנת קפה — ב-.NET MAUI הרכיב הזה נקרא **`Pin`** (סיכה).
+בשלב זה נבנה את מסך **`CoffeePinsPage`** שמציג תחנות קפה על המפה כסיכות (`Pins`), מאפשר לסנן אותן בזמן אמת משורת חיפוש, ומגיב ללחיצה על סיכה או על בועת המידע שלה:
 
-לכל `Pin` יש 4 מאפיינים עיקריים שחשוב להכיר לפני השימוש:
+![תצוגת מסך שלב 3 - CoffeePinsPage](../../Learning/Images/CoffeePinsPage-overview.png)
 
-| מאפיין (`Property`) | טיפוס | תפקיד על המפה |
+---
+
+## 2. מה מובנה ב-.NET MAUI לעומת מה אנחנו יוצרים בעצמנו?
+
+| רכיב | מאיפה הוא מגיע? | תפקיד |
 | :--- | :--- | :--- |
-| `Location` | `Location` | הקואורדינטות (`Latitude`, `Longitude`) שבהן הסיכה תוצב. |
-| `Label` | `string` | הכותרת הראשית שתופיע בבועה (Callout / InfoWindow) כשלוחצים על הסיכה (למשל: `"קפה רוטשילד 45"`). |
-| `Address` | `string` | שורת המשנה בבועה — הכתובת הפיזית של תחנת הקפה. |
-| `Type` | `PinType` | סיווג הסיכה: `Generic`, `Place`, `SavedPin`, או `SearchResult`. |
+| `<maps:Pin>` (`Location`, `Label`, `Address`, `Type`) | **מובנה ב-`Microsoft.Maui.Controls.Maps`** | סמן ("נעץ") המוצג על המפה ובועת המידע מעליו. |
+| `MarkerClicked` ו-`InfoWindowClicked` | **Events מובנים של `<maps:Pin>`!** | מופעלים אוטומטית כשהמשתמש לוחץ על הסיכה או על הבועה. |
+| `DisplayAlertAsync(...)` | **מתודה מובנית ב-`ContentPage` (.NET 10 MAUI)** | מציגה חלון התראה אסינכרוני למשתמש. |
+| `CoffeeStation`, `CoffeeStationService`, `CoffeePinsViewModel` | **מחלקות שיצרנו בעצמנו** | נתוני תחנות הקפה, הסינון, וניהול הסיכה הנבחרת. |
 
 ---
 
-## 2. איך מחברים רשימת תחנות קפה לסיכות ב-MVVM?
+## 3. שלב א' — מודל תחנת קפה (`Models/CoffeeStation.cs`)
 
-מתחילים רבים מתפתים לכתוב לולאת `foreach` בתוך `Code-Behind` כדי להוסיף סיכות ידנית (`Map.Pins.Add(...)`).  
-בארכיטקטורת **MVVM** נקייה יש דרך טובה ופשוטה בהרבה: **`ItemsSource` + `ItemTemplate`** — בדיוק כמו ב-`CollectionView`!
+שימו לב למאפיין המחושב `Location` — הוא ממיר את `Latitude` ו-`Longitude` לאובייקט `Location` שפקד ה-`<maps:Pin>` מצפה לקבל:
+
+```csharp
+using Microsoft.Maui.Devices.Sensors;
+
+namespace MauiGoogleMapSample.Models;
+
+public class CoffeeStation
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string Specialty { get; set; } = string.Empty;
+    public double Rating { get; set; }
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+
+    public Location Location => new Location(Latitude, Longitude);
+}
+```
+
+---
+
+## 4. שלב ב' — ה-ViewModel (`ViewModels/CoffeePinsViewModel.cs`)
+
+ב-`CoffeePinsViewModel` אנו מחזיקים `ObservableCollection<CoffeeStation> Stations`.  
+כאשר המשתמש לוחץ על "סנן", אנו מנקים וטוענים מחדש את `Stations` — ומכיוון שהמפה קשורה אליו ב-`ItemsSource`, הסיכות על המפה מתעדכנות אוטומטית!
+
+```csharp
+public ObservableCollection<CoffeeStation> Stations { get; }
+
+private void ExecuteFilter()
+{
+    IReadOnlyList<CoffeeStation> filtered = _stationService.FilterStations(SearchQuery);
+    Stations.Clear();
+    foreach (CoffeeStation station in filtered)
+    {
+        Stations.Add(station);
+    }
+}
+
+private void ExecuteSelectStationByName(string? stationName)
+{
+    CoffeeStation? found = Stations.FirstOrDefault(s =>
+        string.Equals(s.Name, stationName, StringComparison.OrdinalIgnoreCase));
+    if (found is not null)
+    {
+        SelectedStation = found;
+    }
+}
+```
+
+---
+
+## 5. שלב ג' — קישור הסיכות ב-XAML (`Views/CoffeePinsPage.xaml`)
+
+במקום לולאת `foreach` ידנית בקוד, מחברים את המפה ל-`ItemsSource="{Binding Stations}"` ומגדירים תבנית `DataTemplate` עם `<maps:Pin>` ושני ה-Events המובנים `MarkerClicked` ו-`InfoWindowClicked`:
 
 ```xml
 <maps:Map x:Name="PinsMapControl"
-          ItemsSource="{Binding Stations}">
+          Grid.Row="1"
+          ItemsSource="{Binding Stations}"
+          IsScrollEnabled="True"
+          IsZoomEnabled="True">
     <maps:Map.ItemTemplate>
         <DataTemplate x:DataType="models:CoffeeStation">
             <maps:Pin Location="{Binding Location}"
@@ -42,22 +105,94 @@
 </maps:Map>
 ```
 
-### למה זה כל כך חזק?
-מכיוון ש-`Stations` הוא `ObservableCollection<CoffeeStation>` ב-`CoffeePinsViewModel`, **בכל פעם שאנחנו מסננים או מוסיפים תחנת קפה לרשימה — הסיכות על המפה מתעדכנות אוטומטית!**
+---
+
+## 6. שלב ד' — טיפול באירועי לחיצה ומיקוד ב-`Views/CoffeePinsPage.xaml.cs`
+
+כאן נמצאים שני ה-Event Handlers של ה-`Pin` (`OnPinMarkerClicked` ו-`OnPinInfoWindowClicked`) והמיקוד הראשוני ב-`OnAppearing()`:
+
+```csharp
+using MauiGoogleMapSample.ViewModels;
+using Microsoft.Maui.Controls.Maps;
+
+namespace MauiGoogleMapSample.Views;
+
+public partial class CoffeePinsPage : ContentPage
+{
+    private readonly CoffeePinsViewModel _viewModel;
+
+    public CoffeePinsPage(CoffeePinsViewModel viewModel)
+    {
+        InitializeComponent();
+        _viewModel = viewModel;
+        BindingContext = _viewModel;
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        Dispatcher.Dispatch(() =>
+        {
+            PinsMapControl?.MoveToRegion(_viewModel.GetInitialMapSpan());
+        });
+    }
+
+    // לחיצה על הסיכה עצמה -> מעדכנת את פס המידע דרך פקודה ב-ViewModel
+    private void OnPinMarkerClicked(object? sender, PinClickedEventArgs e)
+    {
+        if (sender is Pin pin)
+        {
+            _viewModel.SelectStationByNameCommand.Execute(pin.Label);
+        }
+    }
+
+    // לחיצה על הבועה שמעל הסיכה -> מציגה חלון פרטים מלא (DisplayAlertAsync)
+    private async void OnPinInfoWindowClicked(object? sender, PinClickedEventArgs e)
+    {
+        if (sender is Pin pin)
+        {
+            _viewModel.SelectStationByNameCommand.Execute(pin.Label);
+            await DisplayAlertAsync(
+                pin.Label,
+                $"כתובת: {pin.Address}\n{_viewModel.SelectedStationBanner}",
+                "סגור");
+        }
+    }
+}
+```
 
 ---
 
-## 3. ההבדל בין `MarkerClicked` ל-`InfoWindowClicked`
+## 7. שלב ה' — מה מוסיפים ב-`MauiProgram.cs` וב-`AppShell.xaml`?
 
-במפות Google יש **שני אירועי לחיצה שונים** על כל `Pin`:
-1. **`MarkerClicked`** — מופעל כשלוחצים על **הסיכה עצמה** (הנעץ). בדוגמה שלנו, לחיצה כזו מעדכנת את פס המידע בתחתית המסך עם פרטי תחנת הקפה והדירוג שלה.
-2. **`InfoWindowClicked`** — מופעל כשלוחצים על **חלונית המידע (הבועה)** שנפתחת מעל הסיכה. בדוגמה שלנו, לחיצה כזו מציגה חלון פרטים מלא באמצעות `await DisplayAlertAsync(...)` (השיטה המודרנית ב-.NET 10 MAUI).
+```csharp
+private static MauiAppBuilder RegisterServices(this MauiAppBuilder builder)
+{
+    builder.Services.AddSingleton<IMapConfigurationValidator, MapConfigurationValidator>();
+    builder.Services.AddSingleton<ICoffeeRegionService, CoffeeRegionService>();
++   builder.Services.AddSingleton<ICoffeeStationService, CoffeeStationService>();
+    return builder;
+}
+
+private static MauiAppBuilder RegisterViewModels(this MauiAppBuilder builder)
+{
+    builder.Services.AddTransient<SetupStatusViewModel>();
+    builder.Services.AddTransient<MapDisplayViewModel>();
++   builder.Services.AddTransient<CoffeePinsViewModel>();
+    return builder;
+}
+
+private static MauiAppBuilder RegisterViews(this MauiAppBuilder builder)
+{
+    builder.Services.AddTransient<MainPage>();
+    builder.Services.AddTransient<MapDisplayPage>();
++   builder.Services.AddTransient<CoffeePinsPage>();
+    return builder;
+}
+```
 
 ---
 
-## 4. אימות והרצת הבדיקות
-ודאו שהפתרון מתקמפל ושכל הבדיקות (כולל `CoffeeStationServiceTests` ו-`CoffeePinsViewModelTests`) עוברות:
-* ב-Visual Studio: `Build -> Build Solution`, ואז `Test -> Test Explorer -> Run All Tests`.
-* או בטרמינל: `dotnet build` ולאחריו `dotnet test`.
-
-למשימת התרגול שלכם, פתחו את [`Docs/Assignments/03-Pins-And-Callouts-Assignment.pdf`](Assignments/03-Pins-And-Callouts-Assignment.pdf).
+## 8. אימות ובדיקות
+בצעו **Build** והריצו את כל הבדיקות ב-Visual Studio (`Test -> Test Explorer -> Run All Tests`) או בטרמינל (`dotnet build` ו-`dotnet test`).  
+למשימת התרגול שלכם, פתחו את [`Assignments/03-Pins-And-Callouts-Assignment.pdf`](Assignments/03-Pins-And-Callouts-Assignment.pdf).
